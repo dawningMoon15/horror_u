@@ -65,7 +65,7 @@ const MotifSchema = z
   .string()
   .min(1)
   .max(32)
-  .regex(/^[\w\s\-]+$/, 'Motif may only contain word characters, spaces, or hyphens');
+  .regex(/^[\w\s-]+$/, 'Motif may only contain word characters, spaces, or hyphens');
 
 /** The raw capsule — as decoded from the LLM response. */
 export const RawCapsuleSchema = z.object({

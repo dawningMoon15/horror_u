@@ -7,7 +7,7 @@
  * Wire format: base64url( JSON.stringify(RawCapsule) )
  */
 
-import { RawCapsule, RawCapsuleSchema } from './schema';
+import { type RawCapsule, RawCapsuleSchema } from './schema';
 
 const MAX_PASTE_BYTES = 8_192; // 8 KB hard cap
 

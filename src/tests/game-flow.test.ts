@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { gameReducer, INITIAL_STATE, GameState } from '../game/gameReducer';
+import { gameReducer, INITIAL_STATE, type GameState } from '../game/gameReducer';
 import { GENERIC_GAME_CONFIG } from '../game/mapPersonalisation';
 import { PUZZLES } from '../game/puzzles';
 

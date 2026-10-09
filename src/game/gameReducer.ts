@@ -8,9 +8,9 @@
  * - Progress is persisted as opaque flag IDs only (no content, no GameConfig).
  */
 
-import { GameConfig, PersistedProgress, PROGRESS_SCHEMA_VERSION } from './schema';
+import { type GameConfig, type PersistedProgress, PROGRESS_SCHEMA_VERSION } from './schema';
 import { getPuzzlesForLevel, getPuzzleById, validateAnswer } from './puzzles';
-import { resolveEnding, getEndingNarrative, GameFlags } from './endings';
+import { resolveEnding, getEndingNarrative, type GameFlags } from './endings';
 
 // ─── App state machine ──────────────────────────────────────────────────────
 

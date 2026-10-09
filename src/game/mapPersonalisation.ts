@@ -9,7 +9,7 @@
  * The game engine only ever sees GameConfig.
  */
 
-import { RawCapsule, GameConfig, PROGRESS_SCHEMA_VERSION } from './schema';
+import { type RawCapsule, type GameConfig, PROGRESS_SCHEMA_VERSION } from './schema';
 import { validateSessionToken } from './session';
 
 /** Maps theme tokens to prewritten clue variant IDs. */

@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { decodeCapsule } from '../game/decodeCapsule';
-import { RawCapsule } from '../game/schema';
+import type { RawCapsule } from '../game/schema';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

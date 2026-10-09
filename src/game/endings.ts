@@ -7,7 +7,7 @@
  * Priority: TRANSCEND is checked first; LOOP is the fallback.
  */
 
-import { GameConfig } from './schema';
+import type { GameConfig } from './schema';
 
 export interface GameFlags {
   cluesFound: number;
