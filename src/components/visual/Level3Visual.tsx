@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CameraViewport, type Hotspot } from './CameraViewport';
+import { CameraViewport, type Hotspot, type SpotlightCoords } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 
 interface Level3VisualProps {
@@ -9,6 +9,7 @@ interface Level3VisualProps {
 
 export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked }) => {
   const [inspectMode, setInspectMode] = useState<'none' | 'keypad' | 'tumbler' | 'bolts'>('none');
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [enteredCode, setEnteredCode] = useState('');
   const [isOpening, setIsOpening] = useState(unlocked);
   const [statusMessage, setStatusMessage] = useState('ENTER 5-DIGIT ESCAPE CIPHER');
@@ -45,6 +46,7 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
       label: 'Electronic Keypad & Relays',
       xPercent: 50,
       yPercent: 44,
+      step: 3,
       onActivate: () => setInspectMode('keypad'),
     },
     {
@@ -52,24 +54,44 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
       label: 'Rotating Mechanical Safe Dial',
       xPercent: 50,
       yPercent: 58,
-      onActivate: () => setInspectMode('tumbler'),
+      step: 2,
+      onActivate: () => {
+        setInspectMode('tumbler');
+        if (step === 1) setStep(2);
+      },
     },
     {
       id: 'hotspot-bolts',
       label: 'Hydraulic Locking Deadbolts',
       xPercent: 32,
       yPercent: 49,
+      step: 1,
       onActivate: () => setInspectMode('bolts'),
     },
   ];
+
+  // The room is pitch black except for the spotlight centered on the current sequential clue
+  const spotlightMap: Record<number, SpotlightCoords> = {
+    1: { xPercent: 32, yPercent: 49, radius: 155 }, // Deadbolts
+    2: { xPercent: 50, yPercent: 58, radius: 150 }, // Mechanical dial
+    3: { xPercent: 50, yPercent: 44, radius: 155 }, // Keypad
+  };
+
+  const stepObjectives: Record<number, string> = {
+    1: 'PHASE 1/3: INSPECT DEADBOLT SYSTEM',
+    2: 'PHASE 2/3: INSPECT SAFE TUMBLER DIAL',
+    3: 'PHASE 3/3: INPUT 5-DIGIT CIPHER ON KEYPAD',
+  };
 
   return (
     <CameraViewport
       imageSrc="/assets/level3_vault.jpg"
       imageAlt="Massive heavy steel vault door with keypad and yellow hazard stripes"
       title="ROOM 03 // THE VAULT EXIT"
-      subtitle="ENTER 5-DIGIT CONCATENATED CIPHER"
+      subtitle="TACTICAL SPOTLIGHT SEARCH"
+      stepObjective={stepObjectives[step]}
       hotspots={hotspots}
+      spotlightCoords={spotlightMap[step]}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'keypad' : 'none')}
     >
@@ -145,7 +167,7 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
             </div>
 
             <div style={{ marginTop: '1.25rem', fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-              💡 Combine Level 1 count (<strong>3</strong>) + Level 2 year (<strong>1987</strong>)
+              💡 Concatenate Level 1 tape code (<strong>3</strong>) + Level 2 incident year (<strong>1987</strong>)
             </div>
           </div>
         </div>
@@ -159,19 +181,30 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
             <button
               type="button"
               className="hud-btn"
-              onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setInspectMode('none');
+                setStep(3); // Advance spotlight to keypad
+              }}
             >
               ✕ STEP BACK TO ROOM
             </button>
           </div>
           <div style={{ padding: '1.5rem', textAlign: 'center' }}>
-            <p style={{ color: '#fff' }}>The heavy bronze dial coordinates the electronic relay. It requires input at the primary keypad.</p>
+            <p style={{ color: '#fff', lineHeight: 1.7 }}>
+              The heavy bronze safe tumbler is linked to the primary digital relay.<br />
+              An etched plaque reads: <em>"Combine Room 1 Tape code [1 digit] with Room 2 Incident Year [4 digits]. Total length: 5 digits."</em>
+            </p>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => { sound.playKeyClick(); setInspectMode('keypad'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setStep(3);
+                setInspectMode('keypad');
+              }}
             >
-              SWITCH TO ELECTRONIC KEYPAD →
+              PROCEED TO KEYPAD (ENTER 31987) →
             </button>
           </div>
         </div>
@@ -185,19 +218,30 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
             <button
               type="button"
               className="hud-btn"
-              onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setInspectMode('none');
+                setStep(2); // Advance spotlight to mechanical dial
+              }}
             >
               ✕ STEP BACK TO ROOM
             </button>
           </div>
           <div style={{ padding: '1.5rem', textAlign: 'center' }}>
-            <p style={{ color: '#fff' }}>Three high-tensile solid steel cylinders block the vault door. They retract electronically when the correct 5-digit sequence is verified.</p>
+            <p style={{ color: '#fff', lineHeight: 1.7 }}>
+              Three high-tensile solid steel cylinders block the vault door.<br />
+              Hydraulic telemetry states: <em>"Mechanical Tumbler and Electronic Keypad interlocks engaged."</em>
+            </p>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => { sound.playKeyClick(); setInspectMode('keypad'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setStep(2);
+                setInspectMode('tumbler');
+              }}
             >
-              GO TO KEYPAD (ENTER 31987) →
+              INSPECT SAFE TUMBLER DIAL →
             </button>
           </div>
         </div>

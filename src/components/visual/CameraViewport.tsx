@@ -7,6 +7,13 @@ export interface Hotspot {
   xPercent: number; // 0 to 100
   yPercent: number; // 0 to 100
   onActivate: () => void;
+  step?: number;
+}
+
+export interface SpotlightCoords {
+  xPercent: number;
+  yPercent: number;
+  radius?: number; // spotlight radius in px (default ~150px)
 }
 
 interface CameraViewportProps {
@@ -14,10 +21,11 @@ interface CameraViewportProps {
   imageAlt: string;
   title: string;
   subtitle?: string;
+  stepObjective?: string;
   hotspots?: Hotspot[];
   isZoomed?: boolean;
   onToggleZoom?: () => void;
-  isRedAlert?: boolean;
+  spotlightCoords?: SpotlightCoords;
   children?: React.ReactNode;
 }
 
@@ -26,10 +34,11 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   imageAlt,
   title,
   subtitle,
+  stepObjective,
   hotspots = [],
   isZoomed = false,
   onToggleZoom,
-  isRedAlert = true,
+  spotlightCoords,
   children,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,9 +56,9 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     containerRef.current.style.setProperty('--mouse-x', `${xPercent}%`);
     containerRef.current.style.setProperty('--mouse-y', `${yPercent}%`);
 
-    // Subtle 3D tilt
-    const tiltX = ((y / rect.height) - 0.5) * -7;
-    const tiltY = ((x / rect.width) - 0.5) * 7;
+    // Subtle 3D camera parallax tilt
+    const tiltX = ((y / rect.height) - 0.5) * -5;
+    const tiltY = ((x / rect.width) - 0.5) * 5;
     setTilt({ x: tiltX, y: tiltY });
   };
 
@@ -64,6 +73,16 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     }
   }, [imageSrc]);
 
+  // Spotlight coordinates default to current clue or center
+  const spotX = spotlightCoords?.xPercent ?? 50;
+  const spotY = spotlightCoords?.yPercent ?? 50;
+  const spotRadius = spotlightCoords?.radius ?? 150;
+
+  // Mask creates a pitch-black room except for the circular pool of spotlight
+  const spotlightMask = isZoomed
+    ? 'none'
+    : `radial-gradient(circle ${spotRadius}px at ${spotX}% ${spotY}%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.92) 55%, rgba(0,0,0,0.25) 82%, rgba(0,0,0,0) 100%)`;
+
   return (
     <div
       ref={containerRef}
@@ -72,6 +91,11 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
       onMouseLeave={handleMouseLeave}
       role="region"
       aria-label={imageAlt}
+      style={{
+        backgroundColor: '#000000',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
     >
       {/* 3D Camera Tilt Rig */}
       <div
@@ -80,38 +104,46 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
           transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         }}
       >
+        {/* Background Image: completely blacked out except in the spotlight zone */}
         <img
           src={imageSrc}
           alt={imageAlt}
           className={`viewport-bg-image ${isZoomed ? 'zoomed' : ''}`}
+          style={{
+            maskImage: spotlightMask,
+            WebkitMaskImage: spotlightMask,
+            transition: 'mask-image 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), -webkit-mask-image 0.7s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          }}
         />
-        <div className="viewport-spotlight-layer" aria-hidden="true" />
-        {/* Blood-red vignette and crimson emergency hazard strobe */}
-        <div className="viewport-blood-vignette" aria-hidden="true" />
-        {isRedAlert && <div className="viewport-emergency-strobe" aria-hidden="true" />}
-        <svg
-          className="blood-lens-splatters"
-          viewBox="0 0 1000 600"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M780,0 Q820,60 850,40 Q880,120 900,30 Q940,90 980,10 L1000,0 Z"
-            fill="rgba(138, 3, 3, 0.45)"
+
+        {/* Ambient Spotlight Cone Beam illumination */}
+        {!isZoomed && (
+          <div
+            className="viewport-spotlight-beam"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background: `radial-gradient(circle ${spotRadius + 20}px at ${spotX}% ${spotY}%, rgba(255, 255, 235, 0.12) 0%, rgba(255, 255, 240, 0.04) 55%, transparent 100%)`,
+              transition: 'background 0.7s cubic-bezier(0.2, 0.8, 0.2, 1)',
+              zIndex: 6,
+            }}
+            aria-hidden="true"
           />
-          <circle cx="95" cy="520" r="14" fill="rgba(120, 2, 2, 0.35)" />
-          <circle cx="120" cy="535" r="9" fill="rgba(120, 2, 2, 0.3)" />
-          <circle cx="75" cy="505" r="6" fill="rgba(140, 2, 2, 0.4)" />
-          <path d="M40,590 Q120,530 140,600 Z" fill="rgba(100, 2, 2, 0.35)" />
-        </svg>
+        )}
       </div>
 
       {/* Top HUD Bar */}
       <div className="viewport-hud-bar">
-        <div className="hud-pill">
+        <div className="hud-pill" style={{ background: 'rgba(6, 9, 14, 0.92)', borderColor: 'var(--border-subtle)' }}>
           <span style={{ color: 'var(--color-phosphor-green)' }}>●</span>
           <span>{title}</span>
           {subtitle && <span style={{ opacity: 0.65 }}>// {subtitle}</span>}
+          {stepObjective && (
+            <span style={{ color: 'var(--color-terminal-amber)', fontWeight: 600, marginLeft: '0.4rem' }}>
+              [{stepObjective}]
+            </span>
+          )}
         </div>
 
         {onToggleZoom && (
@@ -123,35 +155,41 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
               onToggleZoom();
             }}
           >
-            {isZoomed ? '🔍 ZOOM OUT (WIDE)' : '🔎 INSPECT CLOSE-UP'}
+            {isZoomed ? '🔍 STEP BACK (WIDE)' : '🔎 INSPECT CLOSE-UP'}
           </button>
         )}
       </div>
 
-      {/* Hotspots (Rendered in wide mode) */}
+      {/* Stealth Clue Hotspots (No visible markers on clue; user discovers by exploring illuminated area) */}
       {!isZoomed &&
         hotspots.map((spot) => (
           <button
             key={spot.id}
             type="button"
-            className="hotspot-marker blood-variant"
+            className="hotspot-stealth-area"
             style={{
+              position: 'absolute',
               left: `${spot.xPercent}%`,
               top: `${spot.yPercent}%`,
+              transform: 'translate(-50%, -50%)',
+              width: '110px',
+              height: '110px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: '50%',
+              cursor: 'crosshair',
+              zIndex: 25,
+              outline: 'none',
             }}
             onClick={() => {
               sound.playKeyClick();
               spot.onActivate();
             }}
             aria-label={spot.label}
-          >
-            <div className="hotspot-pulse-ring" aria-hidden="true" />
-            <span style={{ fontSize: '0.85rem' }}>🩸</span>
-            <span className="hotspot-label-tooltip">{spot.label}</span>
-          </button>
+          />
         ))}
 
-      {/* Inspection Overlay Workspace (if children provided) */}
+      {/* Inspection Overlay Workspace */}
       {children}
     </div>
   );

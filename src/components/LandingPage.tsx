@@ -24,7 +24,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <>
-      {/* Ambient Looping Video Plate (Cinematic Void Portal) */}
+      {/* Ambient Looping Video Plate (Cinematic Portal in Dark Void) */}
       <div className="ambient-video-plate" aria-hidden="true">
         <video
           autoPlay
@@ -41,95 +41,110 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </video>
       </div>
 
-      <main className="landing-screen" role="main" style={{ position: 'relative', zIndex: 1 }}>
-        {/* Streamlined Status Badge */}
-        <div className="badge-tag green anim-rise anim-delay-1" style={{ borderColor: 'rgba(217, 4, 41, 0.4)' }}>
-          <span style={{ color: 'var(--color-blood-bright)' }} aria-hidden="true">●</span> EXPERIMENTAL ANOMALY // OFFLINE RUNTIME
+      <main className="landing-screen" role="main" style={{ position: 'relative', zIndex: 3 }}>
+        {/* Subtle Status Badge */}
+        <div className="badge-tag green anim-rise anim-delay-1">
+          <span style={{ color: 'var(--color-phosphor-green)' }} aria-hidden="true">●</span> EXPERIMENTAL RETRO-COMPUTING MYSTERY
         </div>
 
-        {/* Punchy Title & Subtitle */}
-        <h1 className="screen-title anim-rise anim-delay-2" style={{ textShadow: '0 0 30px rgba(217, 4, 41, 0.35)' }}>
+        {/* Cinematic Title */}
+        <h1 className="screen-title anim-rise anim-delay-2">
           THE CONTEXT
         </h1>
-        <p className="screen-subtitle anim-rise anim-delay-3" style={{ maxWidth: '600px', marginBottom: '1.5rem' }}>
-          An AI-personalised psychological horror escape room. Explore an antiquated terminal where
-          your digital curiosities manifest inside a sinister fictional anomaly.
+        <p className="screen-subtitle anim-rise anim-delay-3">
+          A short browser-based psychological horror escape room personalised by your chosen AI
+          assistant. Explore an antiquated terminal where your harmless digital curiosities
+          reappear inside an eerie fictional anomaly.
         </p>
 
-        {/* Streamlined Narrative Terminal Window */}
+        {/* Narrative Terminal Window */}
         <section
           className="terminal-panel anim-rise anim-delay-4"
           aria-label="Terminal Log Entry"
-          style={{ borderColor: 'rgba(217, 4, 41, 0.3)', marginBottom: '1.5rem' }}
         >
-          <div className="panel-titlebar" style={{ background: 'rgba(20, 4, 8, 0.65)' }}>
+          <div className="panel-titlebar">
             <div className="panel-window-controls">
               <span className="panel-dot red" aria-hidden="true" />
               <span className="panel-dot yellow" aria-hidden="true" />
               <span className="panel-dot green" aria-hidden="true" />
             </div>
-            <span>ARCHIVE_MANIFEST // 0x7F-BOOT</span>
-            <span className="brand-version-badge" style={{ color: 'var(--color-blood-bright)', borderColor: 'rgba(217, 4, 41, 0.3)' }}>
-              RED ALERT
+            <span>ARCHIVE_MANIFEST // GX7F-BOOT</span>
+            <span className="brand-version-badge">
+              OFFLINE MODE
             </span>
           </div>
-          <div className="panel-body" style={{ padding: '1rem 1.25rem' }}>
-            <p style={{ margin: 0, lineHeight: 1.5, fontSize: '0.92rem', color: 'var(--color-text-primary)' }}>
-              &gt; SYSTEM RESTORED. You awaken in front of a blood-stained CRT terminal.
+          <div className="panel-body">
+            <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--color-text-primary)' }}>
+              &gt; SYSTEM RESTORED. You wake up seated in front of an illuminated monochromatic monitor.
               <br />
-              &gt; To unlock the blast doors before the containment loop purge, examine the records and solve three visual puzzles.
+              &gt; The directory trees, audio frequencies, and log files seem faintly familiar—as if woven
+              from fragments of thoughts you explored only moments ago.
+              <br />
+              &gt; To unlock the exit before the session loops, you must examine the records and solve
+              three linked logical puzzles.
             </p>
           </div>
         </section>
 
-        {/* Streamlined Visual 3-Step Flow */}
-        <div className="feature-grid anim-rise anim-delay-5" style={{ margin: '1.25rem 0', gap: '1rem' }}>
-          <div className="feature-card" style={{ padding: '1rem', background: 'rgba(18, 10, 16, 0.65)' }}>
-            <div className="feature-card-header" style={{ marginBottom: '0.4rem' }}>
-              <span className="feature-card-number">01</span>
-              <h3 className="feature-card-title" style={{ fontSize: '1rem' }}>Copy Prompt</h3>
+        {/* Feature Grid: How It Works */}
+        <h2
+          className="anim-rise anim-delay-5"
+          style={{
+            fontSize: '1.25rem',
+            color: 'var(--color-text-primary)',
+            margin: '2rem 0 1rem 0',
+            letterSpacing: '0.05em',
+            fontFamily: 'var(--font-display)',
+          }}
+        >
+          HOW PERSONALISATION WORKS
+        </h2>
+
+        <div className="feature-grid anim-rise anim-delay-5">
+          <div className="feature-card">
+            <div className="feature-card-header">
+              <span className="feature-card-number">STEP 01</span>
+              <h3 className="feature-card-title">Copy Prompt</h3>
             </div>
-            <p className="feature-card-desc" style={{ fontSize: '0.82rem', margin: 0 }}>
-              Feed the safe prompt into your AI to extract an encrypted memory capsule.
+            <p className="feature-card-desc">
+              Copy the structured prompt into ChatGPT, Claude, Gemini, or your preferred AI. The prompt
+              restricts output to strict allowlists (e.g. astronomy, retro-computing, mythology).
             </p>
           </div>
 
-          <div className="feature-card" style={{ padding: '1rem', background: 'rgba(18, 10, 16, 0.65)' }}>
-            <div className="feature-card-header" style={{ marginBottom: '0.4rem' }}>
-              <span className="feature-card-number" style={{ color: 'var(--color-blood-bright)', background: 'rgba(217, 4, 41, 0.15)' }}>02</span>
-              <h3 className="feature-card-title" style={{ fontSize: '1rem' }}>Ingest Capsule</h3>
+          <div className="feature-card">
+            <div className="feature-card-header">
+              <span className="feature-card-number">STEP 02</span>
+              <h3 className="feature-card-title">Memory Capsule</h3>
             </div>
-            <p className="feature-card-desc" style={{ fontSize: '0.82rem', margin: 0 }}>
-              The capsule reshapes room lighting, lore, audio frequencies, and puzzle skin.
+            <p className="feature-card-desc">
+              Your assistant encodes harmless interest categories into a compact base64 payload.
+              No passwords, personal names, locations, or direct quotes are ever permitted.
             </p>
           </div>
 
-          <div className="feature-card" style={{ padding: '1rem', background: 'rgba(18, 10, 16, 0.65)' }}>
-            <div className="feature-card-header" style={{ marginBottom: '0.4rem' }}>
-              <span className="feature-card-number" style={{ color: 'var(--color-terminal-amber)', background: 'rgba(245, 158, 11, 0.15)' }}>03</span>
-              <h3 className="feature-card-title" style={{ fontSize: '1rem' }}>Escape Chamber</h3>
+          <div className="feature-card">
+            <div className="feature-card-header">
+              <span className="feature-card-number">STEP 03</span>
+              <h3 className="feature-card-title">Escape The Room</h3>
             </div>
-            <p className="feature-card-desc" style={{ fontSize: '0.82rem', margin: 0 }}>
-              Manipulate 3D dials, keypads, and bloody files to escape the anomaly.
+            <p className="feature-card-desc">
+              Paste the capsule to awaken the room’s skin, audio tone, and clue variants.
+              Every puzzle remains 100% deterministic, verifiable, and solvable.
             </p>
           </div>
         </div>
 
-        {/* Primary Action Buttons */}
+        {/* Primary Action Buttons with Blood-Red Emergency Glow */}
         <div
           className="btn-group anim-rise anim-delay-6"
-          style={{ justifyContent: 'flex-start', margin: '1.75rem 0 1.25rem 0', gap: '0.85rem' }}
+          style={{ justifyContent: 'flex-start', margin: '2.5rem 0 1.5rem 0', gap: '1rem' }}
         >
           <button
             type="button"
             id="btn-start-consent"
             className="btn btn-primary"
             onClick={handlePersonalised}
-            style={{
-              background: 'linear-gradient(135deg, #00ff88 0%, #00b462 100%)',
-              boxShadow: '0 0 25px rgba(0, 255, 136, 0.4)',
-              padding: '0.85rem 1.6rem',
-            }}
           >
             <span>⚡</span> ENTER THE ARCHIVE (Personalised Mode)
           </button>
@@ -139,21 +154,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             id="btn-start-generic"
             className="btn btn-secondary"
             onClick={handleGeneric}
-            style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderColor: 'rgba(255, 255, 255, 0.15)',
-              padding: '0.85rem 1.4rem',
-            }}
           >
             <span>◈</span> PLAY WITHOUT PERSONALISATION (Generic Mode)
           </button>
         </div>
 
-        {/* Streamlined Footnote Bar with Privacy Policy Modal Link */}
-        <footer className="footer-trust-strip anim-fade anim-delay-7" role="contentinfo" style={{ marginTop: '2rem', paddingTop: '1rem' }}>
+        {/* Footnote Bar with Learn More / Privacy Policy Modal Trigger */}
+        <footer className="footer-trust-strip anim-fade anim-delay-7" role="contentinfo">
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>
-              <span style={{ color: 'var(--color-phosphor-green)' }}>🔒</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+              <span style={{ color: '#ff3366' }}>🔒</span>
               <span>100% Client-Side Ingestion. Zero Server Logs. Machine-Enforced Privacy.</span>
             </div>
 
@@ -168,7 +178,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 background: 'transparent',
                 border: 'none',
                 color: 'var(--color-cyber-cyan)',
-                fontSize: '0.78rem',
+                fontSize: '0.8rem',
                 textDecoration: 'underline',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-mono)',
@@ -187,9 +197,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             style={{
               position: 'fixed',
               inset: 0,
-              background: 'rgba(0, 0, 0, 0.85)',
-              backdropFilter: 'blur(8px)',
-              zIndex: 200,
+              background: 'rgba(0, 0, 0, 0.88)',
+              backdropFilter: 'blur(10px)',
+              zIndex: 300,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -200,21 +210,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div
               className="data-policy-modal"
               style={{
-                background: '#090d16',
-                border: '1px solid var(--border-medium)',
+                background: '#0c060a',
+                border: '1px solid rgba(217, 4, 41, 0.5)',
                 borderRadius: 'var(--radius-md)',
                 maxWidth: '620px',
                 width: '100%',
                 maxHeight: '85vh',
                 overflowY: 'auto',
                 padding: '1.75rem',
-                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.95), 0 0 40px rgba(217, 4, 41, 0.25)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <h2 style={{ fontSize: '1.2rem', color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>🛡️</span> DATA HANDLING & PRIVACY DISCLOSURE
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid rgba(217, 4, 41, 0.3)', paddingBottom: '0.75rem' }}>
+                <h2 style={{ fontSize: '1.15rem', color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: '#ff3366' }}>🛡️</span> DATA HANDLING & PRIVACY PROTOCOL
                 </h2>
                 <button
                   type="button"
@@ -230,25 +240,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <p style={{ margin: 0 }}>
                   <strong style={{ color: '#fff' }}>1. Zero Server Storage & Zero Telemetry:</strong>
                   <br />
-                  This escape room operates 100% in your browser. There is no remote backend database, no telemetry tracker, and no third-party analytics script.
+                  This escape room operates 100% inside your browser session. There are no remote backend servers, no analytics databases, and no tracking cookies.
                 </p>
 
                 <p style={{ margin: 0 }}>
                   <strong style={{ color: '#fff' }}>2. Machine-Enforced Vercel CSP:</strong>
                   <br />
-                  Enforced via HTTP Content Security Policy headers (<code>connect-src 'none'</code>), physically prohibiting the browser from exfiltrating data anywhere.
+                  HTTP Content Security Policy headers (<code>connect-src 'none'</code>) physically prevent the web page from making network outbound requests.
                 </p>
 
                 <p style={{ margin: 0 }}>
-                  <strong style={{ color: '#fff' }}>3. Allowlist-Only Capsule Ingestion:</strong>
+                  <strong style={{ color: '#fff' }}>3. Strict Allowlist-Only Token Ingestion:</strong>
                   <br />
-                  Personalisation is derived strictly from harmless interest tokens (e.g. astronomy, botany, retro-computing). Passwords, real names, GPS data, or raw chat logs are strictly blocked by cryptographic schemas.
+                  Personalisation is derived strictly from harmless category tokens (e.g. astronomy, botany, retro-computing). Passwords, real names, GPS data, or raw chat logs are strictly blocked by cryptographic schemas.
                 </p>
 
                 <p style={{ margin: 0 }}>
                   <strong style={{ color: '#fff' }}>4. Instant Memory Purge:</strong>
                   <br />
-                  The base64 payload is converted into opaque runtime flags and instantly purged from memory. Refreshing or closing the tab leaves zero traces.
+                  The base64 payload is converted into opaque runtime flags and purged from memory. Refreshing or closing the tab leaves zero traces.
                 </p>
               </div>
 
@@ -257,7 +267,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   type="button"
                   className="btn btn-primary"
                   onClick={() => setShowDataPolicy(false)}
-                  style={{ padding: '0.5rem 1.25rem', fontSize: '0.82rem' }}
+                  style={{ padding: '0.55rem 1.35rem', fontSize: '0.82rem' }}
                 >
                   UNDERSTOOD ↵
                 </button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CameraViewport, type Hotspot } from './CameraViewport';
+import { CameraViewport, type Hotspot, type SpotlightCoords } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 
 interface Level1VisualProps {
@@ -9,6 +9,7 @@ interface Level1VisualProps {
 
 export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked }) => {
   const [inspectMode, setInspectMode] = useState<'none' | 'lock' | 'runes' | 'terminal'>('none');
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [dialValue, setDialValue] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(unlocked);
 
@@ -36,6 +37,7 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
       label: 'Locked Padlock & Center Drawer',
       xPercent: 50,
       yPercent: 78,
+      step: 3,
       onActivate: () => setInspectMode('lock'),
     },
     {
@@ -43,24 +45,44 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
       label: 'Carved Wood Geometric Runes',
       xPercent: 48,
       yPercent: 62,
-      onActivate: () => setInspectMode('runes'),
+      step: 2,
+      onActivate: () => {
+        setInspectMode('runes');
+        if (step === 1) setStep(2);
+      },
     },
     {
       id: 'hotspot-crt',
       label: 'Green Phosphor Terminal Log',
       xPercent: 50,
       yPercent: 28,
+      step: 1,
       onActivate: () => setInspectMode('terminal'),
     },
   ];
+
+  // The room is pitch black except for the spotlight centered on the current sequential clue
+  const spotlightMap: Record<number, SpotlightCoords> = {
+    1: { xPercent: 50, yPercent: 28, radius: 155 }, // Monitor
+    2: { xPercent: 48, yPercent: 62, radius: 150 }, // Carved wood
+    3: { xPercent: 50, yPercent: 78, radius: 145 }, // Padlock & drawer
+  };
+
+  const stepObjectives: Record<number, string> = {
+    1: 'PHASE 1/3: INSPECT ILLUMINATED MONITOR',
+    2: 'PHASE 2/3: EXAMINE CARVED RUNES ON DESK',
+    3: 'PHASE 3/3: CRACK PADLOCK TUMBLER',
+  };
 
   return (
     <CameraViewport
       imageSrc="/assets/level1_desk.jpg"
       imageAlt="Dark 1980s control room desk with locked drawer and green monitor"
       title="ROOM 01 // ARCHIVE CONTROL DESK"
-      subtitle="EXAMINE WOODEN CARVINGS & PADLOCK"
+      subtitle="TACTICAL SPOTLIGHT SEARCH"
+      stepObjective={stepObjectives[step]}
       hotspots={hotspots}
+      spotlightCoords={spotlightMap[step]}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'lock' : 'none')}
     >
@@ -165,7 +187,11 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
                     type="button"
                     className="btn btn-secondary"
                     style={{ marginTop: '1rem' }}
-                    onClick={() => { sound.playKeyClick(); setInspectMode('runes'); }}
+                    onClick={() => {
+                      sound.playKeyClick();
+                      setStep(2);
+                      setInspectMode('runes');
+                    }}
                   >
                     🔍 EXAMINE CARVED RUNES
                   </button>
@@ -180,11 +206,15 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
       {inspectMode === 'runes' && (
         <div className="inspect-overlay-panel" role="dialog" aria-label="Geometric Runes">
           <div className="inspect-header">
-            <span className="inspect-title">📐 CARVED WOOD RUNES (UV INSPECTION)</span>
+            <span className="inspect-title">📐 CARVED WOOD RUNES (DESKTOP INTAGLIO)</span>
             <button
               type="button"
               className="hud-btn"
-              onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setInspectMode('none');
+                setStep(3); // Advance sequential spotlight to the lock
+              }}
             >
               ✕ STEP BACK TO ROOM
             </button>
@@ -192,7 +222,7 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
 
           <div className="runes-inspection-board">
             <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
-              Drag your cursor over the carved runes. Note which shapes have <strong>straight edges</strong>:
+              Examine the carved markings in the wood. Note which shapes have <strong>straight edges</strong>:
             </p>
 
             <div className="carved-shape-item highlighted">
@@ -264,9 +294,13 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
                 type="button"
                 className="btn btn-primary"
                 style={{ padding: '0.45rem 1rem', fontSize: '0.82rem' }}
-                onClick={() => { sound.playKeyClick(); setInspectMode('lock'); }}
+                onClick={() => {
+                  sound.playKeyClick();
+                  setStep(3);
+                  setInspectMode('lock');
+                }}
               >
-                GO TO PADLOCK (ENTER 3) →
+                PROCEED TO PADLOCK (ENTER 3) →
               </button>
             </div>
           </div>
@@ -281,7 +315,11 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
             <button
               type="button"
               className="hud-btn"
-              onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setInspectMode('none');
+                setStep(2); // Advance spotlight to carved runes
+              }}
             >
               ✕ STEP BACK TO ROOM
             </button>
@@ -305,9 +343,13 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => { sound.playKeyClick(); setInspectMode('lock'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setStep(2);
+                setInspectMode('runes');
+              }}
             >
-              OPEN PADLOCK ROTARY DIAL →
+              EXAMINE CARVED RUNES ON DESK →
             </button>
           </div>
         </div>

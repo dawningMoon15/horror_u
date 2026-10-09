@@ -51,85 +51,24 @@
   filter: contrast(1.15) brightness(0.85);
 }
 
-/* Atmospheric Darkness & Spotlight / Flashlight */
-.viewport-spotlight-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    circle 240px at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(0, 255, 136, 0.03) 40%,
-    rgba(0, 0, 0, 0.6) 80%,
-    rgba(0, 0, 0, 0.85) 100%
-  );
-  z-index: 5;
-  mix-blend-mode: multiply;
-}
+/* ─── Stealth Clue Hit Areas (No visible markers on clue) ────────────────── */
 
-/* ─── Interactive Hotspot Markers ────────────────────────────────────────── */
-
-.hotspot-marker {
+.hotspot-stealth-area {
   position: absolute;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
   transform: translate(-50%, -50%);
-  cursor: pointer;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 255, 136, 0.15);
-  border: 1px solid var(--color-phosphor-green);
-  box-shadow: 0 0 15px var(--color-phosphor-glow);
-  transition: all 0.25s ease;
+  cursor: crosshair;
+  background: transparent;
+  border: none;
   outline: none;
-}
-
-.hotspot-marker:hover, .hotspot-marker:focus-visible {
-  transform: translate(-50%, -50%) scale(1.22);
-  background: rgba(0, 255, 136, 0.35);
-  box-shadow: 0 0 25px rgba(0, 255, 136, 0.7);
-}
-
-.hotspot-pulse-ring {
-  position: absolute;
-  inset: -6px;
+  z-index: 25;
   border-radius: 50%;
-  border: 1px solid var(--color-phosphor-green);
-  animation: hotspotPulse 2s infinite ease-out;
-  pointer-events: none;
+  transition: background 0.2s ease;
 }
 
-@keyframes hotspotPulse {
-  0% { transform: scale(0.8); opacity: 0.9; }
-  100% { transform: scale(1.8); opacity: 0; }
-}
-
-.hotspot-label-tooltip {
-  position: absolute;
-  bottom: 120%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(4, 8, 12, 0.92);
-  border: 1px solid var(--color-phosphor-green);
-  color: #fff;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  padding: 0.3rem 0.6rem;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
-}
-
-.hotspot-marker:hover .hotspot-label-tooltip {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-4px);
+.hotspot-stealth-area:hover,
+.hotspot-stealth-area:focus-visible {
+  cursor: crosshair;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
 }
 
 /* ─── HUD Controls & Overlays ────────────────────────────────────────────── */
@@ -534,56 +473,6 @@
   backdrop-filter: blur(12px);
   z-index: 40;
   flex-shrink: 0;
-}
-
-/* ─── Visceral Blood Lighting & Splatter Overlays ────────────────────────── */
-.viewport-blood-vignette {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at center, transparent 40%, rgba(138, 3, 3, 0.35) 75%, rgba(60, 2, 2, 0.85) 100%),
-    linear-gradient(to bottom, rgba(217, 4, 41, 0.15) 0%, transparent 20%, transparent 80%, rgba(74, 2, 2, 0.5) 100%);
-  mix-blend-mode: multiply;
-  z-index: 6;
-}
-
-.viewport-emergency-strobe {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 25%, rgba(255, 16, 63, 0.28) 0%, rgba(138, 3, 3, 0.16) 65%, transparent 100%);
-  animation: emergencyAlarmPulse 2.4s infinite ease-in-out;
-  z-index: 7;
-}
-
-@keyframes emergencyAlarmPulse {
-  0%, 100% { opacity: 0.25; filter: brightness(1); }
-  50% { opacity: 0.85; filter: brightness(1.4); }
-}
-
-.blood-lens-splatters {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 8;
-  opacity: 0.75;
-}
-
-/* Red Emergency Hotspot */
-.hotspot-marker.blood-variant {
-  background: rgba(217, 4, 41, 0.25);
-  border-color: var(--color-blood-bright);
-  box-shadow: 0 0 20px var(--color-blood-glow);
-}
-
-.hotspot-marker.blood-variant:hover {
-  background: rgba(217, 4, 41, 0.55);
-  box-shadow: 0 0 30px rgba(255, 16, 63, 0.85);
-}
-
-.hotspot-marker.blood-variant .hotspot-pulse-ring {
-  border-color: var(--color-emergency-red);
 }
 
 /* Modal Inspection Popover inside Full-Screen */

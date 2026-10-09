@@ -29,9 +29,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 30%, rgba(14, 30, 24, 0.35) 0%, rgba(6, 8, 12, 0.95) 75%),
-    linear-gradient(rgba(0, 255, 136, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 136, 0.02) 1px, transparent 1px);
+    radial-gradient(circle at 50% 30%, rgba(20, 26, 38, 0.45) 0%, rgba(6, 8, 12, 0.98) 75%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
   background-size: 100% 100%, 32px 32px, 32px 32px;
   pointer-events: none;
   z-index: 0;
@@ -64,7 +64,7 @@ body::before {
 .crt-vignette {
   position: fixed;
   inset: 0;
-  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+  box-shadow: inset 0 0 130px rgba(0, 0, 0, 0.92);
   pointer-events: none;
   z-index: 998;
 }
@@ -91,7 +91,7 @@ body::before {
   flex-wrap: wrap;
   gap: 1rem;
   padding: 1.25rem 0;
-  border-bottom: 1px solid var(--border-medium);
+  border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 2rem;
 }
 
@@ -106,17 +106,17 @@ body::before {
   font-weight: 800;
   font-size: 1.35rem;
   letter-spacing: 0.15em;
-  color: var(--color-phosphor-green);
-  text-shadow: 0 0 10px var(--color-phosphor-glow);
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
   text-transform: uppercase;
 }
 
 .brand-version-badge {
   font-size: 0.7rem;
   padding: 0.2rem 0.5rem;
-  background: rgba(0, 255, 136, 0.1);
-  border: 1px solid var(--border-medium);
-  color: var(--color-phosphor-green);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
   letter-spacing: 0.08em;
 }
@@ -140,8 +140,8 @@ body::before {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: var(--color-phosphor-green);
-  box-shadow: 0 0 8px var(--color-phosphor-green);
+  background-color: var(--color-blood-bright);
+  box-shadow: 0 0 10px rgba(255, 16, 63, 0.9);
   animation: pulseDot 2s infinite ease-in-out;
 }
 
@@ -197,7 +197,7 @@ body::before {
   color: #ffffff;
   margin: 0 0 0.5rem 0;
   line-height: 1.15;
-  text-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
 }
 
 @media (max-width: 768px) {
@@ -233,6 +233,13 @@ body::before {
   color: var(--color-phosphor-green);
 }
 
+.badge-tag.red,
+.badge-tag.blood {
+  background: rgba(180, 20, 30, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  color: #f87171;
+}
+
 .badge-tag.amber {
   background: rgba(245, 158, 11, 0.12);
   border: 1px solid var(--border-warning);
@@ -248,7 +255,7 @@ body::before {
 /* ─── Retro Terminal Window / Glass Panel ────────────────────────────────── */
 
 .terminal-panel {
-  background: var(--color-bg-card);
+  background: rgba(12, 16, 24, 0.85);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -261,7 +268,7 @@ body::before {
 }
 
 .terminal-panel:hover {
-  border-color: rgba(0, 255, 136, 0.25);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .panel-titlebar {
@@ -329,16 +336,17 @@ body::before {
 }
 
 .btn-primary {
-  background: var(--color-phosphor-green);
-  color: #040906;
-  border-color: var(--color-phosphor-green);
-  box-shadow: var(--shadow-glow-green);
+  background: #ffffff;
+  color: #06090e;
+  border-color: #ffffff;
+  box-shadow: 0 2px 14px rgba(255, 255, 255, 0.18);
+  font-weight: 700;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #22ff99;
+  background: #f1f5f9;
   transform: translateY(-1px);
-  box-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -346,14 +354,14 @@ body::before {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--color-text-primary);
   border-color: var(--border-subtle);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
   color: #ffffff;
 }
 
@@ -480,17 +488,19 @@ body::before {
 }
 
 .feature-card {
-  background: rgba(14, 20, 32, 0.6);
+  background: rgba(14, 18, 28, 0.75);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1.35rem;
   transition: all var(--transition-normal);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .feature-card:hover {
-  border-color: var(--border-medium);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
-  background: rgba(18, 26, 42, 0.75);
+  background: rgba(20, 26, 40, 0.85);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
 }
 
 .feature-card-header {
@@ -505,6 +515,7 @@ body::before {
   font-size: 0.75rem;
   color: var(--color-phosphor-green);
   background: rgba(0, 255, 136, 0.1);
+  border: 1px solid var(--border-medium);
   padding: 0.2rem 0.5rem;
   border-radius: var(--radius-sm);
 }

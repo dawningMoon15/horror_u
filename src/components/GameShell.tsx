@@ -18,7 +18,6 @@ interface GameShellProps {
 export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
   const [answerInput, setAnswerInput] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isRedAlert, setIsRedAlert] = useState(true);
   const [isNarratorOn, setIsNarratorOn] = useState(() => narrator.isNarratorEnabled());
   const [showHintModal, setShowHintModal] = useState(false);
 
@@ -59,11 +58,6 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
     if (nextVal && currentPuzzle) {
       narrator.speak(`Voice transmission active. ${currentPuzzle.promptText}`);
     }
-  };
-
-  const toggleRedAlert = () => {
-    sound.playKeyClick();
-    setIsRedAlert((prev) => !prev);
   };
 
   const handleAnswerSubmit = (e?: React.FormEvent, customAnswer?: string) => {
@@ -128,22 +122,22 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
           <div
             className="hud-pill"
             style={{
-              background: 'rgba(217, 4, 41, 0.18)',
-              border: '1px solid rgba(217, 4, 41, 0.45)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-subtle)',
               color: '#fff',
               fontSize: '0.8rem',
-              fontWeight: 700,
+              fontWeight: 600,
             }}
           >
-            <span style={{ color: 'var(--color-blood-bright)' }}>🔴</span>
+            <span style={{ color: 'var(--color-phosphor-green)' }}>●</span>
             <span>LEVEL {levelNumber} OF 3: {levelNames[levelNumber]}</span>
           </div>
 
           <div
             className="hud-pill"
             style={{
-              background: 'rgba(0, 0, 0, 0.5)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              background: 'rgba(0, 0, 0, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               fontSize: '0.75rem',
               color: 'var(--color-text-secondary)',
             }}
@@ -166,20 +160,6 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
             }}
           >
             {isNarratorOn ? '🔊 VOICE: ON' : '🔇 VOICE: OFF'}
-          </button>
-
-          <button
-            type="button"
-            className={`hud-btn ${isRedAlert ? 'active' : ''}`}
-            onClick={toggleRedAlert}
-            title="Toggle blood emergency red alert lights"
-            style={{
-              background: isRedAlert ? 'rgba(217, 4, 41, 0.25)' : 'rgba(255, 255, 255, 0.05)',
-              borderColor: isRedAlert ? 'var(--color-blood-bright)' : 'var(--border-subtle)',
-              color: isRedAlert ? '#ff5277' : 'var(--color-text-secondary)',
-            }}
-          >
-            {isRedAlert ? '🚨 RED ALERT' : '💡 NORMAL LIGHT'}
           </button>
 
           <button

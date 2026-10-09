@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CameraViewport, type Hotspot } from './CameraViewport';
+import { CameraViewport, type Hotspot, type SpotlightCoords } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 
 interface Level2VisualProps {
@@ -9,6 +9,7 @@ interface Level2VisualProps {
 
 export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked }) => {
   const [inspectMode, setInspectMode] = useState<'none' | 'dossiers' | 'cctv' | 'cabinet'>('none');
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [revealedA, setRevealedA] = useState(unlocked);
   const [revealedB, setRevealedB] = useState(unlocked);
 
@@ -39,6 +40,7 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
       label: 'Classified Dossiers & Reports',
       xPercent: 65,
       yPercent: 68,
+      step: 3,
       onActivate: () => setInspectMode('dossiers'),
     },
     {
@@ -46,6 +48,7 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
       label: 'Surveillance Monitor Feed',
       xPercent: 22,
       yPercent: 52,
+      step: 1,
       onActivate: () => setInspectMode('cctv'),
     },
     {
@@ -53,17 +56,36 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
       label: 'Metal Archive Filing Drawers',
       xPercent: 55,
       yPercent: 35,
-      onActivate: () => setInspectMode('cabinet'),
+      step: 2,
+      onActivate: () => {
+        setInspectMode('cabinet');
+        if (step === 1) setStep(2);
+      },
     },
   ];
+
+  // The room is pitch black except for the spotlight centered on the current sequential clue
+  const spotlightMap: Record<number, SpotlightCoords> = {
+    1: { xPercent: 22, yPercent: 52, radius: 155 }, // CCTV
+    2: { xPercent: 55, yPercent: 35, radius: 150 }, // Cabinet drawers
+    3: { xPercent: 65, yPercent: 68, radius: 160 }, // Dossiers on table
+  };
+
+  const stepObjectives: Record<number, string> = {
+    1: 'PHASE 1/3: INSPECT CCTV SURVEILLANCE FEED',
+    2: 'PHASE 2/3: LOCATE CABINET RECORDS',
+    3: 'PHASE 3/3: UN-REDACT & VERIFY YEAR',
+  };
 
   return (
     <CameraViewport
       imageSrc="/assets/level2_records.jpg"
       imageAlt="Classified underground records room with dossiers and filing cabinets"
       title="ROOM 02 // RECORDS ARCHIVE"
-      subtitle="COMPARE CONTRADICTORY DOSSIERS"
+      subtitle="TACTICAL SPOTLIGHT SEARCH"
+      stepObjective={stepObjectives[step]}
       hotspots={hotspots}
+      spotlightCoords={spotlightMap[step]}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'dossiers' : 'none')}
     >
@@ -179,7 +201,11 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
             <button
               type="button"
               className="hud-btn"
-              onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setInspectMode('none');
+                setStep(2); // Advance spotlight to cabinet
+              }}
             >
               ✕ STEP BACK TO ROOM
             </button>
@@ -195,15 +221,19 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
           >
             <p style={{ margin: 0, lineHeight: 1.7 }}>
               &gt; FOOTAGE ARCHIVE LOADED: SUBJECT 7B LOG.<br />
-              &gt; THE LOG FILE DATES CONTRADICT ONE ANOTHER (1984 vs 1987).<br />
-              &gt; COMMON YEAR REFERENCED ACROSS BOTH DOSSIERS IS 1987.<br />
+              &gt; SECURITY REEL: Casefiles have been moved to Center Filing Drawers (Section R78-B).<br />
+              &gt; NOTICE: Check cabinet drawers to recover the case dossiers.<br />
               <br />
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => { sound.playKeyClick(); setInspectMode('dossiers'); }}
+                onClick={() => {
+                  sound.playKeyClick();
+                  setStep(2);
+                  setInspectMode('cabinet');
+                }}
               >
-                EXAMINE THE DOSSIERS NOW →
+                LOCATE CABINET IN ROOM →
               </button>
             </p>
           </div>
@@ -218,17 +248,25 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
             <button
               type="button"
               className="hud-btn"
-              onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setInspectMode('none');
+                setStep(3); // Advance spotlight to dossiers table
+              }}
             >
               ✕ STEP BACK TO ROOM
             </button>
           </div>
           <div style={{ padding: '1.25rem', color: '#fff' }}>
-            <p>Drawer R78-B is already unlatched. The two primary files have been pulled onto the examination table.</p>
+            <p style={{ lineHeight: 1.6 }}>Drawer R78-B slides open with a mechanical rasp. Two confidential incident folders are recovered and placed on the central review table.</p>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => { sound.playKeyClick(); setInspectMode('dossiers'); }}
+              onClick={() => {
+                sound.playKeyClick();
+                setStep(3);
+                setInspectMode('dossiers');
+              }}
             >
               EXAMINE DOSSIERS ON TABLE →
             </button>
