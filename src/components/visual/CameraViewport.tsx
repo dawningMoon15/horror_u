@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sound } from '../../lib/soundEffects';
+import { FlashlightAtmosphereCanvas } from './three/FlashlightAtmosphereCanvas';
+import { CrtHorrorShaderCanvas } from './three/CrtHorrorShaderCanvas';
 
 export interface Hotspot {
   id: string;
@@ -250,6 +252,19 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
           />
         )}
       </div>
+
+      {/* ─── Three.js Volumetric Flashlight & Floating Dust Particle Atmosphere ─── */}
+      <FlashlightAtmosphereCanvas
+        mouseXPercent={mousePos.x}
+        mouseYPercent={mousePos.y}
+        active={!isZoomed && !isGameOver && !isJumpscare}
+      />
+
+      {/* ─── WebGL Real-Time CRT Horror Post-Processing Shader ─────────── */}
+      <CrtHorrorShaderCanvas
+        intensity={isZoomed ? 0.35 : 0.65}
+        glitchActive={isJumpscare}
+      />
 
       {/* Stealth Clue Hotspots (Discovered by moving cursor spotlight over them) */}
       {!isZoomed &&

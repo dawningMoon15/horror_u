@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CameraViewport, type Hotspot } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
+import { ThreeCoreScene } from './three/ThreeCoreScene';
 
 interface Level5VisualProps {
   onSolve: (answer: string) => void;
@@ -294,6 +295,35 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({
               background: '#000000',
             }}
           >
+            {/* Real-time WebGL Three.js Core Chamber Scene */}
+            <ThreeCoreScene
+              cameraYaw={camera.yaw}
+              cameraPitch={camera.pitch}
+              cameraPosZ={camera.posZ}
+              activeStep={step}
+              subsystems={subsystems}
+              onSelectHotspot={(hotspotStep) => {
+                if (hotspotStep === 1) {
+                  setShowHint(false);
+                  setInspectMode('waveform');
+                } else if (hotspotStep === 2) {
+                  if (step < 2) {
+                    sound.playErrorBuzz();
+                    return;
+                  }
+                  setShowHint(false);
+                  setInspectMode('memory');
+                } else if (hotspotStep === 3) {
+                  if (step < 3) {
+                    sound.playErrorBuzz();
+                    return;
+                  }
+                  setShowHint(false);
+                  setInspectMode('command');
+                }
+              }}
+            />
+
             {/* 3D Camera Rig: Moves with WASD and rotates with mouse/keys */}
             <div
               style={{
