@@ -1,0 +1,489 @@
+/**
+ * visual-game.css — 3D camera viewport, interactive hotspots, draggable dossiers,
+ * rotary lock dials, and tactile keypads for THE CONTEXT.
+ */
+
+/* ─── 3D Camera Viewport ─────────────────────────────────────────────────── */
+
+.viewport-scene-container {
+  position: relative;
+  width: 100%;
+  height: 580px;
+  max-height: 80vh;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 255, 136, 0.15);
+  perspective: 1000px;
+  user-select: none;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .viewport-scene-container {
+    height: 480px;
+  }
+}
+
+.viewport-3d-rig {
+  position: absolute;
+  inset: -20px;
+  transform-style: preserve-3d;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.viewport-bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: contrast(1.08) brightness(0.92);
+  transform: translateZ(0);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.5s ease;
+}
+
+.viewport-bg-image.zoomed {
+  transform: scale(1.35) translateY(-3%);
+  filter: contrast(1.15) brightness(0.85);
+}
+
+/* Atmospheric Darkness & Spotlight / Flashlight */
+.viewport-spotlight-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 240px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(0, 255, 136, 0.03) 40%,
+    rgba(0, 0, 0, 0.6) 80%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+  z-index: 5;
+  mix-blend-mode: multiply;
+}
+
+/* ─── Interactive Hotspot Markers ────────────────────────────────────────── */
+
+.hotspot-marker {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 255, 136, 0.15);
+  border: 1px solid var(--color-phosphor-green);
+  box-shadow: 0 0 15px var(--color-phosphor-glow);
+  transition: all 0.25s ease;
+  outline: none;
+}
+
+.hotspot-marker:hover, .hotspot-marker:focus-visible {
+  transform: translate(-50%, -50%) scale(1.22);
+  background: rgba(0, 255, 136, 0.35);
+  box-shadow: 0 0 25px rgba(0, 255, 136, 0.7);
+}
+
+.hotspot-pulse-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid var(--color-phosphor-green);
+  animation: hotspotPulse 2s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes hotspotPulse {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.hotspot-label-tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(4, 8, 12, 0.92);
+  border: 1px solid var(--color-phosphor-green);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.hotspot-marker:hover .hotspot-label-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* ─── HUD Controls & Overlays ────────────────────────────────────────────── */
+
+.viewport-hud-bar {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.hud-pill {
+  pointer-events: auto;
+  background: rgba(6, 10, 16, 0.88);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-phosphor-green);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hud-btn {
+  pointer-events: auto;
+  background: rgba(6, 10, 16, 0.88);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.hud-btn:hover {
+  background: rgba(0, 255, 136, 0.2);
+  border-color: var(--color-phosphor-green);
+  color: var(--color-phosphor-green);
+}
+
+/* ─── Inspection Modal / Tactile Workspace ───────────────────────────────── */
+
+.inspect-overlay-panel {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 7, 12, 0.88);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  animation: fadeInInspect 0.3s ease;
+  overflow-y: auto;
+}
+
+@keyframes fadeInInspect {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.inspect-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.inspect-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ─── Level 1: Rotary Lock & Shape Carvings ──────────────────────────────── */
+
+.level1-workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .level1-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.runes-inspection-board {
+  background: rgba(18, 14, 12, 0.9);
+  border: 2px solid #5a422d;
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.carved-shape-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.carved-shape-item:hover, .carved-shape-item.highlighted {
+  border-color: var(--color-phosphor-green);
+  background: rgba(0, 255, 136, 0.08);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.shape-svg-icon {
+  width: 32px;
+  height: 32px;
+  stroke: var(--color-phosphor-green);
+  stroke-width: 2;
+  fill: none;
+}
+
+/* Mechanical Padlock & Rotary Dial */
+.padlock-mechanism-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #11141a;
+  border: 2px solid #333a46;
+  border-radius: var(--radius-md);
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  position: relative;
+}
+
+.padlock-shackle {
+  width: 90px;
+  height: 70px;
+  border: 12px solid #8c9ba5;
+  border-bottom: none;
+  border-radius: 45px 45px 0 0;
+  transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.padlock-shackle.open {
+  transform: translateY(-26px) rotate(-12deg);
+  border-color: var(--color-phosphor-green);
+}
+
+.rotary-dial-container {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2d3436 40%, #1a1e21 100%);
+  border: 6px solid #4a5568;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: grab;
+  margin: 1rem 0;
+  transition: border-color 0.3s ease;
+}
+
+.rotary-dial-container:active {
+  cursor: grabbing;
+}
+
+.rotary-dial-number {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  user-select: none;
+}
+
+.rotary-dial-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* ─── Level 2: Draggable Dossiers & Magnifier ─────────────────────────────── */
+
+.level2-desk-workspace {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  background: #14110f;
+  border: 2px solid #3d3028;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  overflow: hidden;
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .level2-desk-workspace {
+    flex-direction: column;
+  }
+}
+
+.dossier-card {
+  flex: 1;
+  background: #dfd8c8;
+  color: #1a1a1a;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  padding: 1.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  position: relative;
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  min-height: 280px;
+}
+
+.dossier-card:active {
+  cursor: grabbing;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.8);
+}
+
+.dossier-stamp {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  border: 2px solid #b91c1c;
+  color: #b91c1c;
+  font-weight: 800;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  transform: rotate(8deg);
+  letter-spacing: 0.1em;
+}
+
+.redacted-bar {
+  background: #111;
+  color: transparent;
+  padding: 0 0.4rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-block;
+  margin: 0.1rem 0;
+}
+
+.redacted-bar.revealed {
+  background: rgba(245, 158, 11, 0.2);
+  color: #b45309;
+  font-weight: 800;
+  border-bottom: 2px solid var(--color-terminal-amber);
+}
+
+/* ─── Level 3: Tactile 3D Keypad ─────────────────────────────────────────── */
+
+.level3-vault-keypad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 320px;
+  margin: 0 auto;
+  background: #0d1217;
+  border: 3px solid #22303c;
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+.keypad-display-screen {
+  width: 100%;
+  background: #020805;
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+  box-shadow: inset 0 0 12px rgba(0, 255, 136, 0.2);
+}
+
+.keypad-display-digits {
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  letter-spacing: 0.4em;
+  color: var(--color-phosphor-green);
+  text-shadow: 0 0 10px var(--color-phosphor-glow);
+  min-height: 2.2rem;
+}
+
+.keypad-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.keypad-num-btn {
+  background: #1a232c;
+  border: 1px solid #334454;
+  border-bottom: 4px solid #0d141b;
+  color: #e2e8f0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 0.85rem 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.08s ease;
+  user-select: none;
+}
+
+.keypad-num-btn:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  background: #253340;
+  color: var(--color-phosphor-green);
+}
+
+.keypad-num-btn.enter {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: var(--border-medium);
+  border-bottom-color: rgba(0, 180, 90, 0.8);
+  color: var(--color-phosphor-green);
+}
+
+.keypad-num-btn.clear {
+  background: rgba(255, 51, 102, 0.15);
+  border-color: var(--border-danger);
+  border-bottom-color: rgba(180, 30, 60, 0.8);
+  color: var(--color-crimson-alert);
+  font-size: 0.95rem;
+}

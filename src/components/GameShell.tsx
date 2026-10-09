@@ -3,6 +3,11 @@ import type { GameState, GameAction } from '../game/gameReducer';
 import { getPuzzleById } from '../game/puzzles';
 import { sound } from '../lib/soundEffects';
 
+import { Level1Visual } from './visual/Level1Visual';
+import { Level2Visual } from './visual/Level2Visual';
+import { Level3Visual } from './visual/Level3Visual';
+import { EndingVisual } from './visual/EndingVisual';
+
 interface GameShellProps {
   state: GameState;
   dispatch: React.Dispatch<GameAction>;
@@ -10,19 +15,21 @@ interface GameShellProps {
 
 export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
   const [answerInput, setAnswerInput] = useState('');
+  const [viewMode, setViewMode] = useState<'visual' | 'terminal'>('visual');
 
   const currentPuzzle = state.currentPuzzleId ? getPuzzleById(state.currentPuzzleId) : null;
   const isEnding = state.appState === 'ENDING';
 
-  const handleAnswerSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentPuzzle || !answerInput.trim()) return;
+  const handleAnswerSubmit = (e?: React.FormEvent, customAnswer?: string) => {
+    if (e) e.preventDefault();
+    const finalAnswer = customAnswer ?? answerInput;
+    if (!currentPuzzle || !finalAnswer.trim()) return;
 
     sound.playKeyClick();
     dispatch({
       type: 'SUBMIT_ANSWER',
       puzzleId: currentPuzzle.id,
-      attempt: answerInput,
+      attempt: finalAnswer,
     });
     setAnswerInput('');
   };
@@ -39,81 +46,11 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
 
   // ─── Ending View ────────────────────────────────────────────────────────
   if (isEnding) {
-    const isTranscend = state.endingId === 'TRANSCEND';
-
-    return (
-      <main className="game-ending-screen" role="main">
-        <div className={`badge-tag ${isTranscend ? 'cyan' : 'amber'}`}>
-          <span aria-hidden="true">★</span> SESSION TERMINATED // OUTCOME REACHED
-        </div>
-
-        <h1 className="screen-title" id="ending-title">
-          {state.endingId === 'TRANSCEND' ? 'YOU ALWAYS KNEW' : 'STILL IN CONTEXT'}
-        </h1>
-
-        <div className="terminal-panel">
-          <div className="panel-titlebar">
-            <span>TERMINAL_DUMP // SUMMARY</span>
-            <span className="brand-version-badge">COMPLETED</span>
-          </div>
-          <div className="panel-body">
-            <p
-              style={{
-                fontSize: '1.15rem',
-                lineHeight: 1.7,
-                color: 'var(--color-phosphor-green)',
-                margin: '0 0 1.5rem 0',
-              }}
-              id="ending-narrative"
-            >
-              {state.endingText ?? 'You found the exit. But the context remains.'}
-            </p>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '1rem',
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: '1rem',
-                fontSize: '0.85rem',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              <div>
-                <span style={{ color: 'var(--color-text-muted)', display: 'block' }}>Clues Unlocked:</span>
-                <strong style={{ color: '#fff' }}>{state.clueFlags.size} / 3</strong>
-              </div>
-              <div>
-                <span style={{ color: 'var(--color-text-muted)', display: 'block' }}>Hints Consulted:</span>
-                <strong style={{ color: '#fff' }}>{state.hintsUsed}</strong>
-              </div>
-              <div>
-                <span style={{ color: 'var(--color-text-muted)', display: 'block' }}>Active Skin:</span>
-                <strong style={{ color: 'var(--color-cyber-cyan)' }}>
-                  {state.config?.visualVariant ?? 'standard'}
-                </strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="btn-group">
-          <button
-            type="button"
-            id="btn-restart-game"
-            className="btn btn-primary"
-            onClick={handleRestart}
-          >
-            ↺ REBOOT SESSION & PLAY AGAIN
-          </button>
-        </div>
-      </main>
-    );
+    return <EndingVisual state={state} onRestart={handleRestart} />;
   }
 
   // ─── Playable Level View ────────────────────────────────────────────────
-  const levelNumber = state.appState.replace('LEVEL_', '');
+  const levelNumber = state.appState.replace('LEVEL_', '') as '1' | '2' | '3';
   const levelNames: Record<string, string> = {
     '1': 'THE ARCHIVE DRAWER',
     '2': 'CONTRADICTORY RECORDS',
@@ -122,15 +59,62 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
 
   return (
     <main className="game-level-screen" role="main">
-      <div className="badge-tag green">
-        <span aria-hidden="true">▶</span> LEVEL {levelNumber} OF 3: {levelNames[levelNumber]}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+        <div className="badge-tag green" style={{ margin: 0 }}>
+          <span aria-hidden="true">▶</span> LEVEL {levelNumber} OF 3: {levelNames[levelNumber]}
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            type="button"
+            className={`icon-btn-toggle ${viewMode === 'visual' ? 'active' : ''}`}
+            onClick={() => { sound.playKeyClick(); setViewMode('visual'); }}
+            title="Switch to 3D room perspective with dragging and tactile clicking"
+          >
+            👁️ 3D ROOM VIEW
+          </button>
+          <button
+            type="button"
+            className={`icon-btn-toggle ${viewMode === 'terminal' ? 'active' : ''}`}
+            onClick={() => { sound.playKeyClick(); setViewMode('terminal'); }}
+            title="Switch to raw terminal console"
+          >
+            📟 TERMINAL CONSOLE
+          </button>
+        </div>
       </div>
 
-      <h1 className="screen-title" style={{ fontSize: '2.2rem' }}>
+      <h1 className="screen-title" style={{ fontSize: '2.1rem' }}>
         LEVEL {levelNumber}: {levelNames[levelNumber]}
       </h1>
 
-      {/* Narrative & Active Puzzle Container */}
+      {/* ─── 3D Visual Interactive Gameplay Room ─────────────────────── */}
+      {viewMode === 'visual' && (
+        <section aria-label="Interactive 3D Room Experience">
+          {levelNumber === '1' && (
+            <Level1Visual
+              onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+              unlocked={state.clueFlags.has('L1_DRAWER_OPEN')}
+            />
+          )}
+
+          {levelNumber === '2' && (
+            <Level2Visual
+              onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+              unlocked={state.clueFlags.has('L2_CONTRADICTION_FOUND')}
+            />
+          )}
+
+          {levelNumber === '3' && (
+            <Level3Visual
+              onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+              unlocked={state.clueFlags.has('L3_EXIT_OPEN')}
+            />
+          )}
+        </section>
+      )}
+
+      {/* ─── Narrative & Diagnostic Terminal Window ──────────────────── */}
       <div className="terminal-panel">
         <div className="panel-titlebar">
           <span>ACTIVE MONITOR // {currentPuzzle?.id ?? 'ANOMALY'}</span>
@@ -176,7 +160,7 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
           )}
 
           {/* Answer Form */}
-          <form onSubmit={handleAnswerSubmit} style={{ marginBottom: '1.5rem' }}>
+          <form onSubmit={(e) => handleAnswerSubmit(e)} style={{ marginBottom: '1.5rem' }}>
             <label htmlFor="puzzle-answer-input" className="form-label">
               Enter Terminal Decryption Command / Answer:
             </label>
@@ -269,7 +253,7 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
         <div className="panel-body">
           {state.clueFlags.size === 0 ? (
             <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-              No clues discovered yet. Solve the current puzzle to unlock records.
+              No clues discovered yet. Solve the current puzzle or explore the 3D room to unlock records.
             </span>
           ) : (
             <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
