@@ -44,16 +44,16 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
     {
       id: 'hotspot-keypad',
       label: 'Electronic Keypad & Relays',
-      xPercent: 50,
-      yPercent: 44,
+      xPercent: 88,
+      yPercent: 58,
       step: 3,
       onActivate: () => setInspectMode('keypad'),
     },
     {
       id: 'hotspot-tumbler',
-      label: 'Rotating Mechanical Safe Dial',
+      label: 'Console Junction Toggle Switches',
       xPercent: 50,
-      yPercent: 58,
+      yPercent: 54,
       step: 2,
       onActivate: () => {
         setInspectMode('tumbler');
@@ -63,27 +63,28 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
     {
       id: 'hotspot-bolts',
       label: 'Hydraulic Locking Deadbolts',
-      xPercent: 32,
-      yPercent: 49,
+      xPercent: 22,
+      yPercent: 44,
       step: 1,
       onActivate: () => setInspectMode('bolts'),
     },
   ];
 
   const stepObjectives: Record<number, string> = {
-    1: 'PHASE 1/3: INSPECT DEADBOLT SYSTEM (30s)',
-    2: 'PHASE 2/3: INSPECT SAFE TUMBLER DIAL (15s)',
-    3: 'PHASE 3/3: INPUT 5-DIGIT CIPHER ON KEYPAD (10s)',
+    1: 'PHASE 1/3: INSPECT VAULT DEADBOLT SYSTEM',
+    2: 'PHASE 2/3: CONSOLE JUNCTION TOGGLES',
+    3: 'PHASE 3/3: INPUT CIPHER ON ENTRY KEYPAD',
   };
 
   return (
     <CameraViewport
       imageSrc="/assets/level3_vault.jpg"
       imageAlt="Massive heavy steel vault door with keypad and yellow hazard stripes"
-      title="ROOM 03 // THE VAULT EXIT"
+      title="ROOM 03 // THE CONTROL ROOM"
       subtitle="ANALOG FLASHLIGHT EXPLORATION"
       stepObjective={stepObjectives[step]}
       currentStep={step}
+      roomDuration={120}
       hotspots={hotspots}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'keypad' : 'none')}

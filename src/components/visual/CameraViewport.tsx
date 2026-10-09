@@ -17,6 +17,7 @@ interface CameraViewportProps {
   subtitle?: string;
   stepObjective?: string;
   currentStep?: 1 | 2 | 3;
+  roomDuration?: number; // Duration in seconds (120s for rooms 1-4, 220s for room 5)
   hotspots?: Hotspot[];
   isZoomed?: boolean;
   onToggleZoom?: () => void;
@@ -31,6 +32,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   subtitle,
   stepObjective,
   currentStep = 1,
+  roomDuration = 120, // 2 minutes default per room
   hotspots = [],
   isZoomed = false,
   onToggleZoom,
@@ -42,24 +44,16 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
 
-  // ─── Countdown Timers: 30s for clue 1, 15s for clue 2, 10s for clue 3 ───
-  const getStepDuration = (step: number) => {
-    if (step === 1) return 30;
-    if (step === 2) return 15;
-    return 10;
-  };
-
-  const [timeLeft, setTimeLeft] = useState(() => getStepDuration(currentStep));
+  // ─── Countdown Timer: 120s (2 min) for Rooms 1-4, 220s (3m 40s) for Room 5 ───
+  const [timeLeft, setTimeLeft] = useState(() => roomDuration);
   const [isJumpscare, setIsJumpscare] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [prevStep, setPrevStep] = useState(currentStep);
   const [prevImage, setPrevImage] = useState(imageSrc);
 
-  // Synchronize state when step or room image changes
-  if (currentStep !== prevStep || imageSrc !== prevImage) {
-    setPrevStep(currentStep);
+  // Synchronize state when room image or duration changes
+  if (imageSrc !== prevImage) {
     setPrevImage(imageSrc);
-    setTimeLeft(getStepDuration(currentStep));
+    setTimeLeft(roomDuration);
     setIsJumpscare(false);
     setIsGameOver(false);
   }
@@ -110,7 +104,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     sound.playKeyClick();
     setIsJumpscare(false);
     setIsGameOver(false);
-    setTimeLeft(getStepDuration(currentStep));
+    setTimeLeft(roomDuration);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -134,6 +128,10 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     ? 'none'
     : `radial-gradient(circle 140px at ${mousePos.x}% ${mousePos.y}%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.94) 50%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0) 100%)`;
 
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
   return (
     <div
       ref={containerRef}
@@ -143,8 +141,12 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
       aria-label={imageAlt}
       style={{
         backgroundColor: '#000000',
-        position: 'relative',
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
         overflow: 'hidden',
+        zIndex: 5,
       }}
     >
       {/* ─── Analog Horror VHS OSD Overlay ─────────────────────────────── */}
@@ -157,8 +159,8 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
         </div>
 
         {/* Urgent Countdown Timer Display */}
-        <div className={`vhs-timer-tag ${timeLeft <= 5 ? 'critical' : ''}`}>
-          <span>TIME LIMIT: 00:{timeLeft.toString().padStart(2, '0')}</span>
+        <div className={`vhs-timer-tag ${timeLeft <= 10 ? 'critical' : ''}`}>
+          <span>TIME LIMIT: {formattedTime}</span>
         </div>
       </div>
 
@@ -177,6 +179,9 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
           style={{
             maskImage: spotlightMask,
             WebkitMaskImage: spotlightMask,
+            width: '100vw',
+            height: '100vh',
+            objectFit: 'cover',
           }}
         />
 

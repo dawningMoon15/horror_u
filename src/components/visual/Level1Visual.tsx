@@ -35,7 +35,7 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
     {
       id: 'hotspot-lock',
       label: 'Locked Padlock & Center Drawer',
-      xPercent: 50,
+      xPercent: 57,
       yPercent: 78,
       step: 3,
       onActivate: () => setInspectMode('lock'),
@@ -43,8 +43,8 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
     {
       id: 'hotspot-runes',
       label: 'Carved Wood Geometric Runes',
-      xPercent: 48,
-      yPercent: 62,
+      xPercent: 65,
+      yPercent: 74,
       step: 2,
       onActivate: () => {
         setInspectMode('runes');
@@ -54,27 +54,28 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
     {
       id: 'hotspot-crt',
       label: 'Green Phosphor Terminal Log',
-      xPercent: 50,
-      yPercent: 28,
+      xPercent: 62,
+      yPercent: 44,
       step: 1,
       onActivate: () => setInspectMode('terminal'),
     },
   ];
 
   const stepObjectives: Record<number, string> = {
-    1: 'PHASE 1/3: INSPECT ILLUMINATED MONITOR (30s)',
-    2: 'PHASE 2/3: EXAMINE CARVED RUNES ON DESK (15s)',
-    3: 'PHASE 3/3: CRACK PADLOCK TUMBLER (10s)',
+    1: 'PHASE 1/3: INSPECT ILLUMINATED MONITOR',
+    2: 'PHASE 2/3: EXAMINE CARVED RUNES ON DESK',
+    3: 'PHASE 3/3: CRACK PADLOCK TUMBLER',
   };
 
   return (
     <CameraViewport
       imageSrc="/assets/level1_desk.jpg"
       imageAlt="Dark 1980s control room desk with locked drawer and green monitor"
-      title="ROOM 01 // ARCHIVE CONTROL DESK"
+      title="ROOM 01 // THE WELCOME TERMINAL"
       subtitle="ANALOG FLASHLIGHT EXPLORATION"
       stepObjective={stepObjectives[step]}
       currentStep={step}
+      roomDuration={120}
       hotspots={hotspots}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'lock' : 'none')}

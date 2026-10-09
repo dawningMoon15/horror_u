@@ -38,24 +38,24 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
     {
       id: 'hotspot-dossiers',
       label: 'Classified Dossiers & Reports',
-      xPercent: 65,
-      yPercent: 68,
+      xPercent: 50,
+      yPercent: 78,
       step: 3,
       onActivate: () => setInspectMode('dossiers'),
     },
     {
       id: 'hotspot-cctv',
       label: 'Surveillance Monitor Feed',
-      xPercent: 22,
-      yPercent: 52,
+      xPercent: 26,
+      yPercent: 44,
       step: 1,
       onActivate: () => setInspectMode('cctv'),
     },
     {
       id: 'hotspot-cabinet',
       label: 'Metal Archive Filing Drawers',
-      xPercent: 55,
-      yPercent: 35,
+      xPercent: 84,
+      yPercent: 50,
       step: 2,
       onActivate: () => {
         setInspectMode('cabinet');
@@ -65,19 +65,20 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
   ];
 
   const stepObjectives: Record<number, string> = {
-    1: 'PHASE 1/3: INSPECT CCTV SURVEILLANCE FEED (30s)',
-    2: 'PHASE 2/3: LOCATE CABINET RECORDS (15s)',
-    3: 'PHASE 3/3: UN-REDACT & VERIFY YEAR (10s)',
+    1: 'PHASE 1/3: INSPECT CCTV SURVEILLANCE FEED',
+    2: 'PHASE 2/3: LOCATE CABINET RECORDS',
+    3: 'PHASE 3/3: UN-REDACT & VERIFY YEAR',
   };
 
   return (
     <CameraViewport
       imageSrc="/assets/level2_records.jpg"
       imageAlt="Classified underground records room with dossiers and filing cabinets"
-      title="ROOM 02 // RECORDS ARCHIVE"
+      title="ROOM 02 // THE MEMORY ARCHIVE"
       subtitle="ANALOG FLASHLIGHT EXPLORATION"
       stepObjective={stepObjectives[step]}
       currentStep={step}
+      roomDuration={120}
       hotspots={hotspots}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'dossiers' : 'none')}

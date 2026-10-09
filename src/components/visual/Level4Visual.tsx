@@ -127,9 +127,9 @@ export const Level4Visual: React.FC<Level4VisualProps> = ({ onSolve, unlocked: _
   ];
 
   const stepObjectives: Record<number, string> = {
-    1: 'PHASE 1/3: IDENTIFY TELEMETRY CONTRADICTION (30s)',
-    2: 'PHASE 2/3: DIAGNOSTIC PROTOCOL OVERRIDE (15s)',
-    3: 'PHASE 3/3: SYSTEM COGNITION VERIFICATION (10s)',
+    1: 'PHASE 1/3: IDENTIFY TELEMETRY CONTRADICTION',
+    2: 'PHASE 2/3: DIAGNOSTIC PROTOCOL OVERRIDE',
+    3: 'PHASE 3/3: SYSTEM COGNITION VERIFICATION',
   };
 
   return (
@@ -140,6 +140,7 @@ export const Level4Visual: React.FC<Level4VisualProps> = ({ onSolve, unlocked: _
       subtitle="ANALOG FLASHLIGHT EXPLORATION"
       stepObjective={stepObjectives[step]}
       currentStep={step}
+      roomDuration={120}
       hotspots={hotspots}
       isZoomed={inspectMode !== 'none' || cutsceneBeat > 0}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'observations' : 'none')}
