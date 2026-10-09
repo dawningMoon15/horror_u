@@ -11,7 +11,7 @@ class SoundManager {
   private ctx: AudioContext | null = null;
   private muted = false;
   private currentMusicAudio: HTMLAudioElement | null = null;
-  private currentMusicType: 'none' | 'homescreen' | 'gameplay' | 'ending' = 'none';
+  private currentMusicType: 'none' | 'homescreen' | 'gameplay' | 'ending' | 'monologue' = 'none';
 
   private initCtx(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -126,6 +126,41 @@ class SoundManager {
     } catch {
       // Audio element not supported
     }
+  }
+
+  /**
+   * Play AM Monologue: Switches off all other audio and plays AM Speech continuously in the background.
+   */
+  public playAmMonologue(): void {
+    if (typeof window === 'undefined') return;
+    if (this.currentMusicType === 'monologue' && this.currentMusicAudio && !this.currentMusicAudio.paused) {
+      return;
+    }
+    this.stopMusic();
+
+    try {
+      const audio = new Audio('/audio/am_monologue.mp3');
+      audio.loop = true;
+      audio.volume = 0.85;
+      audio.muted = this.muted;
+      audio.play().catch(() => {
+        const unlock = () => {
+          audio.play().catch(() => {});
+          window.removeEventListener('click', unlock);
+          window.removeEventListener('keydown', unlock);
+        };
+        window.addEventListener('click', unlock, { once: true });
+        window.addEventListener('keydown', unlock, { once: true });
+      });
+      this.currentMusicAudio = audio;
+      this.currentMusicType = 'monologue';
+    } catch {
+      // Audio element not supported
+    }
+  }
+
+  public isMonologuePlaying(): boolean {
+    return this.currentMusicType === 'monologue';
   }
 
   /** Stop any currently playing background music */
@@ -430,6 +465,31 @@ class SoundManager {
         osc.start(now + idx * 0.07);
         osc.stop(now + idx * 0.07 + 0.35);
       });
+    } catch {
+      // Audio playback failed
+    }
+  }
+
+  /** Harsh analog CRT/tape static glitch effect */
+  public playGlitch(): void {
+    if (this.muted) return;
+    const ctx = this.initCtx();
+    if (!ctx) return;
+
+    try {
+      const node = ctx.createBufferSource();
+      const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.18, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.15;
+      }
+      node.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1400, ctx.currentTime);
+      node.connect(filter);
+      filter.connect(ctx.destination);
+      node.start();
     } catch {
       // Audio playback failed
     }

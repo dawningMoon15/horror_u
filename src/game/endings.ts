@@ -12,7 +12,7 @@ import type { GameConfig } from './schema';
 export interface GameFlags {
   cluesFound: number;
   hintsUsed:  number;
-  level:      1 | 2 | 3;
+  level:      1 | 2 | 3 | 4 | 5;
 }
 
 export interface EndingDefinition {

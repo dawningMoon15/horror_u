@@ -22,7 +22,7 @@ export default function App() {
 
   // Save progress safely on level changes (stores only opaque flags and level number)
   useEffect(() => {
-    if (['LEVEL_1', 'LEVEL_2', 'LEVEL_3'].includes(state.appState)) {
+    if (['LEVEL_1', 'LEVEL_2', 'LEVEL_3', 'LEVEL_4', 'LEVEL_5'].includes(state.appState)) {
       saveProgress(state);
     }
   }, [state]);
@@ -134,6 +134,8 @@ export default function App() {
       case 'LEVEL_1':
       case 'LEVEL_2':
       case 'LEVEL_3':
+      case 'LEVEL_4':
+      case 'LEVEL_5':
       case 'ENDING':
         return (
           <GameShell

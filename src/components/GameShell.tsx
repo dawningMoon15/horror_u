@@ -8,6 +8,8 @@ import { getPersonalisedAnomalyData } from '../lib/personalisationApi';
 import { Level1Visual } from './visual/Level1Visual';
 import { Level2Visual } from './visual/Level2Visual';
 import { Level3Visual } from './visual/Level3Visual';
+import { Level4Visual } from './visual/Level4Visual';
+import { Level5Visual } from './visual/Level5Visual';
 import { EndingVisual } from './visual/EndingVisual';
 
 interface GameShellProps {
@@ -29,12 +31,15 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
     state.config?.visualVariant
   );
 
-  // Start Dark Tension Rising music during gameplay
+  // Start Dark Tension Rising music during gameplay, switch to AM Monologue in Room 5
   useEffect(() => {
-    if (!isEnding) {
+    if (isEnding) return;
+    if (state.appState === 'LEVEL_5' || sound.isMonologuePlaying()) {
+      sound.playAmMonologue();
+    } else {
       sound.playGameMusic();
     }
-  }, [isEnding]);
+  }, [isEnding, state.appState]);
 
   // Auto-narrate room introduction on level entry
   useEffect(() => {
@@ -103,11 +108,13 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
   }
 
   // ─── Playable Level View ────────────────────────────────────────────────
-  const levelNumber = state.appState.replace('LEVEL_', '') as '1' | '2' | '3';
+  const levelNumber = state.appState.replace('LEVEL_', '') as '1' | '2' | '3' | '4' | '5';
   const levelNames: Record<string, string> = {
-    '1': 'THE ARCHIVE DRAWER',
-    '2': 'CONTRADICTORY RECORDS',
-    '3': 'THE VAULT EXIT',
+    '1': 'THE WELCOME TERMINAL',
+    '2': 'THE MEMORY ARCHIVE',
+    '3': 'THE CONTROL ROOM',
+    '4': 'THE OBSERVATION CHAMBER',
+    '5': 'THE CORE',
   };
 
   return (
@@ -137,7 +144,7 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
             }}
           >
             <span style={{ color: 'var(--color-phosphor-green)' }}>●</span>
-            <span>LEVEL {levelNumber} OF 3: {levelNames[levelNumber]}</span>
+            <span>ROOM {levelNumber} OF 5 // LEVEL {levelNumber} OF 5: {levelNames[levelNumber]}</span>
           </div>
 
           <div
@@ -200,6 +207,20 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
           <Level3Visual
             onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
             unlocked={state.clueFlags.has('L3_EXIT_OPEN')}
+          />
+        )}
+
+        {levelNumber === '4' && (
+          <Level4Visual
+            onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+            unlocked={state.clueFlags.has('R4_C3_SOLVED')}
+          />
+        )}
+
+        {levelNumber === '5' && (
+          <Level5Visual
+            onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+            unlocked={state.clueFlags.has('R5_C3_SOLVED')}
           />
         )}
       </section>

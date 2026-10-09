@@ -40,12 +40,24 @@ describe('Game flow — generic mode full playthrough', () => {
     expect(state.appState).toBe('LEVEL_3');
   });
 
-  it('reaches ENDING on correct L3 answer', () => {
+  it('advances to LEVEL_4 on correct L3 answer', () => {
     const state = run([
       { type: 'SETUP_COMPLETE', config: GENERIC_GAME_CONFIG },
       { type: 'SUBMIT_ANSWER', puzzleId: 'L1_DRAWER', attempt: '3' },
       { type: 'SUBMIT_ANSWER', puzzleId: 'L2_RECORDS', attempt: '1987' },
       { type: 'SUBMIT_ANSWER', puzzleId: 'L3_EXIT', attempt: '31987' },
+    ]);
+    expect(state.appState).toBe('LEVEL_4');
+  });
+
+  it('reaches ENDING on completing all 5 rooms', () => {
+    const state = run([
+      { type: 'SETUP_COMPLETE', config: GENERIC_GAME_CONFIG },
+      { type: 'SUBMIT_ANSWER', puzzleId: 'L1_DRAWER', attempt: '3' },
+      { type: 'SUBMIT_ANSWER', puzzleId: 'L2_RECORDS', attempt: '1987' },
+      { type: 'SUBMIT_ANSWER', puzzleId: 'L3_EXIT', attempt: '31987' },
+      { type: 'SUBMIT_ANSWER', puzzleId: 'R4_C3_SENTIENCE', attempt: 'c' },
+      { type: 'SUBMIT_ANSWER', puzzleId: 'R5_C3_COMMAND', attempt: 'observe contain release' },
     ]);
     expect(state.appState).toBe('ENDING');
     expect(state.endingId).toBeTruthy();

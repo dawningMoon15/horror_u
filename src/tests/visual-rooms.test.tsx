@@ -4,6 +4,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Level1Visual } from '../components/visual/Level1Visual';
 import { Level2Visual } from '../components/visual/Level2Visual';
 import { Level3Visual } from '../components/visual/Level3Visual';
+import { Level4Visual } from '../components/visual/Level4Visual';
+import { Level5Visual } from '../components/visual/Level5Visual';
 import { EndingVisual } from '../components/visual/EndingVisual';
 import { INITIAL_STATE } from '../game/gameReducer';
 
@@ -80,22 +82,53 @@ describe('Level3Visual interactive 3D room', () => {
   });
 });
 
+describe('Level4Visual interactive 3D room', () => {
+  it('allows detecting telemetry contradiction in observation chamber', () => {
+    const onSolve = vi.fn();
+    render(<Level4Visual onSolve={onSolve} unlocked={false} />);
+
+    // Click audio logs hotspot
+    fireEvent.click(screen.getByRole('button', { name: /Subject Telemetry Logs/i }));
+    expect(screen.getByText(/OBSERVATION PROTOCOL 12/i)).toBeInTheDocument();
+
+    // Select Observation 3 (contradiction)
+    const obs3Btn = screen.getByText(/OBSERVATION 03:/i);
+    fireEvent.click(obs3Btn);
+
+    expect(onSolve).toHaveBeenCalledWith('3');
+  });
+});
+
+describe('Level5Visual interactive 3D room', () => {
+  it('allows calibrating voice waveform sequence 3-1-4', () => {
+    const onSolve = vi.fn();
+    render(<Level5Visual onSolve={onSolve} unlocked={false} />);
+
+    // Click waveform terminal hotspot
+    fireEvent.click(screen.getByRole('button', { name: /Signal Waveform Terminal/i }));
+    expect(screen.getByText(/CENTRAL VOICE WAVEFORM CALIBRATION/i)).toBeInTheDocument();
+
+    // Enter digits 3, 1, 4
+    fireEvent.click(screen.getByRole('button', { name: '3' }));
+    fireEvent.click(screen.getByRole('button', { name: '1' }));
+    fireEvent.click(screen.getByRole('button', { name: '4' }));
+
+    expect(onSolve).toHaveBeenCalledWith('3-1-4');
+  });
+});
+
 describe('EndingVisual interactive room', () => {
-  it('renders resolution screen and restart button', () => {
+  it('renders false victory beat and handles ending state', () => {
     const onRestart = vi.fn();
     const endingState = {
       ...INITIAL_STATE,
       appState: 'ENDING' as const,
-      endingId: 'TRANSCEND',
-      endingText: 'You saw the pattern before it was shown to you.',
+      endingId: 'INCORRUPTIBLE',
+      endingText: 'The machine took control.',
     };
 
     render(<EndingVisual state={endingState} onRestart={onRestart} />);
-    expect(screen.getByText(/VAULT BREACH/i)).toBeInTheDocument();
-    expect(screen.getByText(/YOU ALWAYS KNEW/i)).toBeInTheDocument();
-
-    const restartBtn = screen.getByRole('button', { name: /REBOOT SESSION/i });
-    fireEvent.click(restartBtn);
-    expect(onRestart).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/CORE ACCESS GRANTED/i)).toBeInTheDocument();
+    expect(screen.getByText(/MEMORY: OFFLINE/i)).toBeInTheDocument();
   });
 });

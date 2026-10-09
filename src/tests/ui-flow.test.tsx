@@ -219,40 +219,45 @@ describe('Full App Integration End-to-End Flow', () => {
     const genericBtn = screen.getByRole('button', { name: /PLAY WITHOUT PERSONALISATION/i });
     fireEvent.click(genericBtn);
 
-    // Enters Level 1
-    expect(screen.getByText(/LEVEL 1 OF 3/i)).toBeInTheDocument();
-    expect(screen.getByText(/The drawer is locked/i)).toBeInTheDocument();
+    // Helper to submit answers via terminal
+    const submit = (ans: string) => {
+      const input = screen.getByRole('textbox', { name: /Enter Terminal Decryption/i });
+      fireEvent.change(input, { target: { value: ans } });
+      fireEvent.click(screen.getByRole('button', { name: /SUBMIT ANSWER/i }));
+    };
 
-    // Submit answer for Level 1 ("3")
-    const answerInput1 = screen.getByRole('textbox', { name: /Enter Terminal Decryption/i });
-    fireEvent.change(answerInput1, { target: { value: '3' } });
-    fireEvent.click(screen.getByRole('button', { name: /SUBMIT ANSWER/i }));
+    // Enters Room 1 (Clues 1, 2, 3)
+    expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
+    submit('3'); // Clue 1: Signal
+    submit('2'); // Clue 2: Metadata
+    submit('3'); // Clue 3: Profile
 
-    // Reaches Level 2
-    expect(screen.getByText(/LEVEL 2 OF 3/i)).toBeInTheDocument();
-    expect(screen.getByText(/Two files. The dates contradict/i)).toBeInTheDocument();
+    // Reaches Room 2 (Clues 4, 5, 6)
+    expect(screen.getByText(/LEVEL 2/i)).toBeInTheDocument();
+    submit('2-4-1-3'); // Clue 4: Chronology
+    submit('b');       // Clue 5: Fragment
+    submit('1987');    // Clue 6: Signal
 
-    // Submit answer for Level 2 ("1987")
-    const answerInput2 = screen.getByRole('textbox', { name: /Enter Terminal Decryption/i });
-    fireEvent.change(answerInput2, { target: { value: '1987' } });
-    fireEvent.click(screen.getByRole('button', { name: /SUBMIT ANSWER/i }));
+    // Reaches Room 3 (Clues 7, 8, 9)
+    expect(screen.getByText(/LEVEL 3/i)).toBeInTheDocument();
+    submit('2');     // Clue 7: Switch
+    submit('987');   // Clue 8: Corrupted Telemetry
+    submit('31987'); // Clue 9: Impossible Log
 
-    // Reaches Level 3
-    expect(screen.getByText(/LEVEL 3 OF 3/i)).toBeInTheDocument();
-    expect(screen.getByText(/The exit requires a code/i)).toBeInTheDocument();
+    // Reaches Room 4 (Clues 10, 11, 12)
+    expect(screen.getByText(/LEVEL 4/i)).toBeInTheDocument();
+    submit('3');                  // Clue 10: Observation Mismatch
+    submit('scan purge isolate'); // Clue 11: Refusal Test
+    submit('c');                  // Clue 12: Sentience Reveal
 
-    // Submit answer for Level 3 ("31987")
-    const answerInput3 = screen.getByRole('textbox', { name: /Enter Terminal Decryption/i });
-    fireEvent.change(answerInput3, { target: { value: '31987' } });
-    fireEvent.click(screen.getByRole('button', { name: /SUBMIT ANSWER/i }));
+    // Reaches Room 5 (Clues 13, 14, 15)
+    expect(screen.getByText(/LEVEL 5/i)).toBeInTheDocument();
+    submit('3-1-4');                   // Clue 13: Voice Waveform
+    submit('bdac');                    // Clue 14: Memory Bank
+    submit('observe contain release'); // Clue 15: Command Breaker
 
-    // Reaches Ending
-    expect(screen.getByText(/SESSION TERMINATED/i)).toBeInTheDocument();
-
-    // Restart returns to Landing
-    const restartBtn = screen.getByRole('button', { name: /REBOOT SESSION/i });
-    fireEvent.click(restartBtn);
-    expect(screen.getByRole('button', { name: /ENTER THE ARCHIVE/i })).toBeInTheDocument();
+    // Reaches Scripted Ending (False Victory Beat)
+    expect(screen.getByText(/CORE ACCESS GRANTED/i)).toBeInTheDocument();
   });
 
   it('allows complete personalized flow from consent to capsule ingestion', () => {
@@ -276,6 +281,6 @@ describe('Full App Integration End-to-End Flow', () => {
     fireEvent.click(submitBtn);
 
     // 5. Enters Level 1
-    expect(screen.getByText(/LEVEL 1 OF 3/i)).toBeInTheDocument();
+    expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
   });
 });

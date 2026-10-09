@@ -107,7 +107,7 @@ export type GameConfig = z.infer<typeof GameConfigSchema>;
  */
 export const PersistedProgressSchema = z.object({
   schemaVersion: z.literal(PROGRESS_SCHEMA_VERSION),
-  level:         z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  level:         z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
   clueFlags:     z.array(z.string()),
   hintsUsed:     z.number().int().min(0),
 });
