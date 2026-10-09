@@ -5,11 +5,30 @@ import { sound } from '../../lib/soundEffects';
 interface Level5VisualProps {
   onSolve: (answer: string) => void;
   unlocked: boolean;
+  activeStep?: 1 | 2 | 3;
+  hints?: string[];
+  hintIndex?: number;
+  onRequestHint?: () => void;
 }
 
-export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
+export const Level5Visual: React.FC<Level5VisualProps> = ({
+  onSolve,
+  activeStep = 1,
+  hints = [],
+  hintIndex = 0,
+  onRequestHint,
+}) => {
   const [inspectMode, setInspectMode] = useState<'none' | 'waveform' | 'memory' | 'command'>('none');
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const step = activeStep;
+  const [showHint, setShowHint] = useState(false);
+
+  const handleToggleHint = () => {
+    sound.playKeyClick();
+    setShowHint((prev) => !prev);
+    if (!showHint && onRequestHint) {
+      onRequestHint();
+    }
+  };
 
   // ─── 3D First-Person Camera Navigation (WASD + Mouse/Arrows) ─────────────
   const [camera, setCamera] = useState({
@@ -124,10 +143,13 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
     if (nextVal.length === 3) {
       if (nextVal === '314') {
         sound.playHeavyUnlock();
+        sound.playSuccessChime();
         setIsWaveformFrozen(true);
-        onSolve('3-1-4');
-        setStep(2);
-        setInspectMode('memory');
+        setTimeout(() => {
+          onSolve('3-1-4');
+          setInspectMode('none');
+          setWaveformInput('');
+        }, 800);
       } else {
         sound.playErrorBuzz();
         setWaveformInput('');
@@ -145,10 +167,13 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
     if (next.length === 4) {
       if (next.join('') === 'BDAC') {
         sound.playHeavyUnlock();
+        sound.playSuccessChime();
         setSubsystems((prev) => ({ ...prev, memory: false }));
-        onSolve('BDAC');
-        setStep(3);
-        setInspectMode('command');
+        setTimeout(() => {
+          onSolve('BDAC');
+          setInspectMode('none');
+          setMemorySequence([]);
+        }, 800);
       } else {
         sound.playErrorBuzz();
         setMemorySequence([]);
@@ -173,6 +198,7 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
         setTimeout(() => setSubsystems((s) => ({ ...s, command: false })), 1100);
         setTimeout(() => {
           onSolve('OBSERVE CONTAIN RELEASE');
+          setInspectMode('none');
         }, 1800);
       } else {
         sound.playErrorBuzz();
@@ -191,32 +217,43 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
   const hotspots: Hotspot[] = [
     {
       id: 'hotspot-waveform-screen',
-      label: 'Signal Waveform Terminal',
+      label: 'Signal Waveform Terminal (Clue 1)',
       xPercent: 50,
       yPercent: 44,
       step: 1,
-      onActivate: () => setInspectMode('waveform'),
+      onActivate: () => {
+        setShowHint(false);
+        setInspectMode('waveform');
+      },
     },
     {
       id: 'hotspot-memory-bank',
-      label: 'Memory Bank Chronology Relay',
+      label: 'Memory Bank Chronology Relay (Clue 2)',
       xPercent: 28,
       yPercent: 70,
       step: 2,
       onActivate: () => {
+        if (step < 2) {
+          sound.playErrorBuzz();
+          return;
+        }
+        setShowHint(false);
         setInspectMode('memory');
-        if (step === 1) setStep(2);
       },
     },
     {
       id: 'hotspot-command-console',
-      label: 'Subsystem Command Disconnect Breakers',
+      label: 'Subsystem Command Disconnect Breakers (Clue 3)',
       xPercent: 72,
       yPercent: 70,
       step: 3,
       onActivate: () => {
+        if (step < 3) {
+          sound.playErrorBuzz();
+          return;
+        }
+        setShowHint(false);
         setInspectMode('command');
-        if (step < 3) setStep(3);
       },
     },
   ];
@@ -623,14 +660,47 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
           <div className="inspect-overlay-panel" role="dialog" aria-label="Waveform Calibration">
             <div className="inspect-header">
               <span className="inspect-title">〰 CENTRAL VOICE WAVEFORM CALIBRATION</span>
-              <button
-                type="button"
-                className="hud-btn"
-                onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
-              >
-                ✕ STEP BACK TO ROOM
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="hud-btn"
+                  onClick={handleToggleHint}
+                  style={{
+                    color: 'var(--color-terminal-amber)',
+                    borderColor: 'rgba(245, 158, 11, 0.5)',
+                    background: 'rgba(245, 158, 11, 0.12)',
+                  }}
+                >
+                  💡 {showHint ? 'HIDE HINT' : 'CLUE HINT'}
+                </button>
+                <button
+                  type="button"
+                  className="hud-btn"
+                  onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+                >
+                  ✕ RETURN TO ROOM
+                </button>
+              </div>
             </div>
+
+            {showHint && (
+              <div
+                style={{
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.4)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.75rem',
+                  marginBottom: '1rem',
+                  fontSize: '0.85rem',
+                  color: '#fff',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <strong>💡 HINT:</strong>{' '}
+                {hints[Math.min(hintIndex, Math.max(0, hints.length - 1))] ??
+                  'Waveform legend: Short=1, Medium=3, Long=4. Medium (3) -> Short (1) -> Long (4). Code is 3-1-4.'}
+              </div>
+            )}
 
             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
               <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
@@ -698,14 +768,47 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
           <div className="inspect-overlay-panel" role="dialog" aria-label="Memory Chronology">
             <div className="inspect-header">
               <span className="inspect-title">💾 MEMORY BANK RECORDS RE-ORDERING</span>
-              <button
-                type="button"
-                className="hud-btn"
-                onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
-              >
-                ✕ STEP BACK TO ROOM
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="hud-btn"
+                  onClick={handleToggleHint}
+                  style={{
+                    color: 'var(--color-terminal-amber)',
+                    borderColor: 'rgba(245, 158, 11, 0.5)',
+                    background: 'rgba(245, 158, 11, 0.12)',
+                  }}
+                >
+                  💡 {showHint ? 'HIDE HINT' : 'CLUE HINT'}
+                </button>
+                <button
+                  type="button"
+                  className="hud-btn"
+                  onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+                >
+                  ✕ RETURN TO ROOM
+                </button>
+              </div>
             </div>
+
+            {showHint && (
+              <div
+                style={{
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.4)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.75rem',
+                  marginBottom: '1rem',
+                  fontSize: '0.85rem',
+                  color: '#fff',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <strong>💡 HINT:</strong>{' '}
+                {hints[Math.min(hintIndex, Math.max(0, hints.length - 1))] ??
+                  'Arrange by timestamps: B (00:01:14) -> D (00:04:32) -> A (00:09:55) -> C (00:14:02). Click BDAC.'}
+              </div>
+            )}
 
             <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
               Click the records in exact chronological order from earliest to latest:
@@ -760,14 +863,47 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
           <div className="inspect-overlay-panel" role="dialog" aria-label="Control Sequence">
             <div className="inspect-header">
               <span className="inspect-title">⚡ FINAL COMMAND BREAKER CONSOLE</span>
-              <button
-                type="button"
-                className="hud-btn"
-                onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
-              >
-                ✕ STEP BACK TO ROOM
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="hud-btn"
+                  onClick={handleToggleHint}
+                  style={{
+                    color: 'var(--color-terminal-amber)',
+                    borderColor: 'rgba(245, 158, 11, 0.5)',
+                    background: 'rgba(245, 158, 11, 0.12)',
+                  }}
+                >
+                  💡 {showHint ? 'HIDE HINT' : 'CLUE HINT'}
+                </button>
+                <button
+                  type="button"
+                  className="hud-btn"
+                  onClick={() => { sound.playKeyClick(); setInspectMode('none'); }}
+                >
+                  ✕ STEP BACK TO ROOM
+                </button>
+              </div>
             </div>
+
+            {showHint && (
+              <div
+                style={{
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.4)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.75rem',
+                  marginBottom: '1rem',
+                  fontSize: '0.85rem',
+                  color: '#fff',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <strong>💡 HINT:</strong>{' '}
+                {hints[Math.min(hintIndex, Math.max(0, hints.length - 1))] ??
+                  'The rule states observation ends before release: OBSERVE precedes CONTAIN, which precedes RELEASE. Order is OBSERVE -> CONTAIN -> RELEASE.'}
+              </div>
+            )}
 
             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
               <p style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem', fontStyle: 'italic', marginBottom: '1.25rem' }}>

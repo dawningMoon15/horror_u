@@ -48,10 +48,10 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
 
-  // ─── Countdown Timer: 120s (2 min) for Rooms 1-4, 220s (3m 40s) for Room 5 ───
   const [timeLeft, setTimeLeft] = useState(() => roomDuration);
   const [isJumpscare, setIsJumpscare] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [skipRejected, setSkipRejected] = useState(false);
   const [prevImage, setPrevImage] = useState(imageSrc);
 
   // Synchronize state when room image or duration changes
@@ -60,6 +60,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     setTimeLeft(roomDuration);
     setIsJumpscare(false);
     setIsGameOver(false);
+    setSkipRejected(false);
   }
 
   // Timer countdown loop (active while exploring in dark room)
@@ -86,15 +87,15 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     return () => clearInterval(interval);
   }, [isZoomed, isJumpscare, isGameOver, currentStep]);
 
-  // Jumpscare auto-advance to Game Over
+  // Jumpscare auto-advance to Game Over (allow full 28-second cute cat clip to play)
   useEffect(() => {
     if (!isJumpscare) return;
 
-    // Safety timeout in case video ends or cannot play
+    // Safety timeout allows the full clip to play before falling back
     const timer = setTimeout(() => {
       setIsJumpscare(false);
       setIsGameOver(true);
-    }, 6000);
+    }, 35000);
 
     return () => clearTimeout(timer);
   }, [isJumpscare]);
@@ -104,10 +105,16 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     setIsGameOver(true);
   };
 
+  const handleAttemptSkip = () => {
+    sound.playErrorBuzz();
+    setSkipRejected(true);
+  };
+
   const handleRetryRoom = () => {
     sound.playKeyClick();
     setIsJumpscare(false);
     setIsGameOver(false);
+    setSkipRejected(false);
     setTimeLeft(roomDuration);
   };
 
@@ -127,10 +134,10 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     setTilt({ x: tiltX, y: tiltY });
   };
 
-  // Mask follows cursor position across pitch-black room
+  // Mask follows cursor position across pitch-black room (doubled spotlight radius: 280px)
   const spotlightMask = isZoomed
     ? 'none'
-    : `radial-gradient(circle 140px at ${mousePos.x}% ${mousePos.y}%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.94) 50%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0) 100%)`;
+    : `radial-gradient(circle 280px at ${mousePos.x}% ${mousePos.y}%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.95) 55%, rgba(0,0,0,0.2) 85%, rgba(0,0,0,0) 100%)`;
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -236,7 +243,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
               position: 'absolute',
               inset: 0,
               pointerEvents: 'none',
-              background: `radial-gradient(circle 165px at ${mousePos.x}% ${mousePos.y}%, rgba(255, 255, 235, 0.16) 0%, rgba(255, 255, 240, 0.04) 55%, transparent 100%)`,
+              background: `radial-gradient(circle 330px at ${mousePos.x}% ${mousePos.y}%, rgba(255, 255, 235, 0.16) 0%, rgba(255, 255, 240, 0.04) 60%, transparent 100%)`,
               zIndex: 6,
             }}
             aria-hidden="true"
@@ -258,8 +265,8 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
               left: `${spot.xPercent}%`,
               top: `${spot.yPercent}%`,
               transform: 'translate(-50%, -50%)',
-              width: '120px',
-              height: '120px',
+              width: '220px',
+              height: '220px',
               background: 'transparent',
               border: 'none',
               borderRadius: '50%',
@@ -286,13 +293,39 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
             onEnded={handleVideoEnded}
             className="jumpscare-video"
           />
-          <button
-            type="button"
-            onClick={handleVideoEnded}
-            className="jumpscare-skip-btn"
-          >
-            SKIP ⏭
-          </button>
+
+          {skipRejected ? (
+            <div
+              className="jumpscare-error-tag"
+              style={{
+                position: 'absolute',
+                top: '2rem',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'rgba(217, 4, 41, 0.95)',
+                color: '#ffffff',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '1rem',
+                fontWeight: 700,
+                padding: '0.65rem 1.5rem',
+                borderRadius: 'var(--radius-sm)',
+                boxShadow: '0 0 35px rgba(217, 4, 41, 0.9)',
+                letterSpacing: '0.08em',
+                zIndex: 60,
+                textAlign: 'center',
+              }}
+            >
+              ⚠️ [ERROR: SYSTEM NOT RESPONDING // OVERRIDE REJECTED]
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAttemptSkip}
+              className="jumpscare-skip-btn"
+            >
+              SKIP ⏭
+            </button>
+          )}
         </div>
       )}
 

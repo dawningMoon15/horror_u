@@ -165,21 +165,36 @@ class SoundManager {
     }
   }
 
+  private monologueEndedListeners: Array<() => void> = [];
+
   /**
-   * Play AM Monologue: Switches off all other audio and plays AM Speech continuously in the background.
+   * Play AM Monologue: Switches off all other audio and plays AM Speech in the background.
    */
-  public playAmMonologue(): void {
+  public playAmMonologue(onEnded?: () => void, loop = false): void {
     if (typeof window === 'undefined') return;
+    if (onEnded) {
+      this.monologueEndedListeners.push(onEnded);
+    }
     if (this.currentMusicType === 'monologue' && this.currentMusicAudio && !this.currentMusicAudio.paused) {
+      // Audio is already actively playing; update loop if requested
+      this.currentMusicAudio.loop = loop;
       return;
     }
     this.stopMusic();
 
     try {
       const audio = new Audio('/audio/am_monologue.mp3');
-      audio.loop = true;
+      audio.loop = loop;
       audio.volume = 0.85;
       audio.muted = this.muted;
+
+      audio.addEventListener('ended', () => {
+        this.stopMusic();
+        const listeners = [...this.monologueEndedListeners];
+        this.monologueEndedListeners = [];
+        listeners.forEach(cb => cb());
+      });
+
       audio.play().catch(() => {
         const unlock = () => {
           audio.play().catch(() => {});
@@ -196,8 +211,27 @@ class SoundManager {
     }
   }
 
+  public onMonologueEnded(cb: () => void): () => void {
+    this.monologueEndedListeners.push(cb);
+    return () => {
+      this.monologueEndedListeners = this.monologueEndedListeners.filter(l => l !== cb);
+    };
+  }
+
   public isMonologuePlaying(): boolean {
     return this.currentMusicType === 'monologue';
+  }
+
+  /** Stop all audio and guarantee absolute dead silence */
+  public stopAllAudio(): void {
+    this.stopMusic();
+    if (this.ctx && this.ctx.state !== 'closed') {
+      try {
+        this.ctx.suspend().catch(() => {});
+      } catch {
+        // Ignore
+      }
+    }
   }
 
   /** Stop any currently playing background music */

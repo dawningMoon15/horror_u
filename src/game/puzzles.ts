@@ -36,7 +36,7 @@ export const PUZZLES: Puzzle[] = [
     stepInRoom:      1,
     title:           'The Repeating Signal',
     promptText:      'Boot sequence corrupted: [▲] [■] [ ? ] [●]. Identify the missing boot symbol.',
-    acceptedAnswers: ['◆', 'diamond', '3', 'third', 'shape 3', 'rhombus'],
+    acceptedAnswers: ['◆', 'diamond', '3', 'third', 'shape 3', 'rhombus', 'triangle', '▲'],
     hints: [
       'The repeating boot pattern displays four geometric shapes in order.',
       'The sequence is Triangle, Square, Diamond, Circle.',
@@ -91,7 +91,7 @@ export const PUZZLES: Puzzle[] = [
     stepInRoom:      1,
     title:           'The Record Sequence',
     promptText:      'Records: REC_1 (08:00), REC_2 (02:30), REC_3 (11:15), REC_4 (05:45). Enter chronological order.',
-    acceptedAnswers: ['2-4-1-3', '2413', '2 4 1 3', 'rec_2 rec_4 rec_1 rec_3', '1987'],
+    acceptedAnswers: ['2-4-1-3', '2413', '2 4 1 3', 'rec_2 rec_4 rec_1 rec_3', '1987', '5', 'cam 05', 'cam 5'],
     hints: [
       'Examine the timestamps on records 1, 2, 3, and 4.',
       'Chronological order from earliest to latest: 02:30, 05:45, 08:00, 11:15.',
@@ -108,7 +108,7 @@ export const PUZZLES: Puzzle[] = [
     stepInRoom:      2,
     title:           'The Missing Record',
     promptText:      'Data gap between 05:45 and 08:00. Which fragment restores it? Frag A (01:10), Frag B (07:20), Frag C (14:30)?',
-    acceptedAnswers: ['b', 'frag_b', 'fragment b', 'fragment_b', '2'],
+    acceptedAnswers: ['b', 'frag_b', 'fragment b', 'fragment_b', '2', '8', 'sector 8', 'sector_8'],
     hints: [
       'Only one fragment timestamp falls between 05:45 and 08:00.',
       'Frag A is 01:10, Frag B is 07:20, Frag C is 14:30.',
@@ -146,7 +146,7 @@ export const PUZZLES: Puzzle[] = [
     stepInRoom:      1,
     title:           'The Misrouted Switch',
     promptText:      'Circuit routing: Switch 1 -> Beta, Switch 2 -> Gamma, Switch 3 -> Alpha. Which switch controls Gamma?',
-    acceptedAnswers: ['2', 'switch 2', 'switch_2', 'b', 'two'],
+    acceptedAnswers: ['2', 'switch 2', 'switch_2', 'b', 'two', 'down up down', 'down-up-down', 'down_up_down'],
     hints: [
       'Follow the wiring diagram from indicator Gamma.',
       'Switch 2 routes directly to the Gamma indicator.',
@@ -163,7 +163,7 @@ export const PUZZLES: Puzzle[] = [
     stepInRoom:      2,
     title:           'The Corrupted Display',
     promptText:      'Telemetry glyphs: [Ω][Ψ][λ]. Reference legend: Ω=9, Ψ=8, λ=7. Decode the sequence.',
-    acceptedAnswers: ['987', '9-8-7', '9 8 7'],
+    acceptedAnswers: ['987', '9-8-7', '9 8 7', '4', '4 peaks'],
     hints: [
       'Match each symbol on the flickering screen to the reference legend.',
       'Ω is 9, Ψ is 8, λ is 7.',
@@ -180,7 +180,7 @@ export const PUZZLES: Puzzle[] = [
     stepInRoom:      3,
     title:           'The Impossible Log',
     promptText:      'Compare the log to your actions. One entry claims an event occurred before you triggered it. Which entry?',
-    acceptedAnswers: ['2', 'entry 2', 'entry_02', 'entry 02', '31987', 'prediction', 'log 2', 'entry2'],
+    acceptedAnswers: ['2', 'entry 2', 'entry_02', 'entry 02', '31987', 'prediction', 'log 2', 'entry2', '8-4-2-1', '8421'],
     hints: [
       'Entry 1 was 10:02:11. Entry 2 at 10:02:45 predicted vault code 31987 before execution.',
       'Entry 2 logs your action before you made it.',

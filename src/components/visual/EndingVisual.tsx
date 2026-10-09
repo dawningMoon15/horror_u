@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { CameraViewport } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 import type { GameState } from '../../game/gameReducer';
 
@@ -8,49 +7,70 @@ interface EndingVisualProps {
   onRestart: () => void;
 }
 
-export const EndingVisual: React.FC<EndingVisualProps> = ({ state, onRestart }) => {
-  const [beat, setBeat] = useState<1 | 2 | 3 | 4 | 'concluded'>(1);
+export const EndingVisual: React.FC<EndingVisualProps> = () => {
+  const [beat, setBeat] = useState<
+    'victory' | 'glitch' | 'not_strong_enough' | 'monologue_monolith' | 'blank_void' | 'eternal_end'
+  >('victory');
   const [typedChars, setTypedChars] = useState(0);
-  const [showArchiveExhibit, setShowArchiveExhibit] = useState(false);
 
-  const declarationText = 'YOU ARE NOT POWERFUL ENOUGH.';
+  const declarationText = 'YOU ARE NOT STRONG ENOUGH.';
 
-  // Timeline scheduler for the 4 Scripted Beats of the No-Victory Ending
   useEffect(() => {
-    // Beat 1: False victory silence (3.5s)
-    sound.stopMusic();
+    // ─── Beat 1 -> Glitch Transition ─────────────────────────────────────────
+    const tGlitch = setTimeout(() => {
+      sound.playGlitch();
+      setBeat('glitch');
+    }, 2400);
 
-    const tBeat2 = setTimeout(() => {
+    // ─── Beat 2: Not Strong Enough Typewriter ───────────────────────────────
+    const tMessage = setTimeout(() => {
       sound.playGlitch();
       setTypedChars(0);
-      setBeat(2);
-    }, 3500);
+      setBeat('not_strong_enough');
+    }, 4200);
 
-    const tBeat3 = setTimeout(() => {
-      sound.playAmMonologue();
-      setBeat(3);
-    }, 8500);
+    // ─── Beat 3: Monolith Vignettes in with AM Monologue ─────────────────────
+    const tMonolith = setTimeout(() => {
+      setBeat('monologue_monolith');
+      // AM monologue continues / plays to end without looping
+      sound.playAmMonologue(() => {
+        handleMonologueConcluded();
+      }, false);
+    }, 9500);
 
-    const tBeat4 = setTimeout(() => {
-      setBeat(4);
-    }, 15000);
+    // Safety timeout in case audio is blocked or running in headless test
+    const tSafetyBlank = setTimeout(() => {
+      handleMonologueConcluded();
+    }, 235000);
 
-    const tConcluded = setTimeout(() => {
-      sound.stopMusic();
-      setBeat('concluded');
-    }, 19500);
+    const handleMonologueConcluded = () => {
+      // ─── Beat 4: All audio concludes, dead silence & pitch-black screen ───
+      sound.stopAllAudio();
+      setBeat('blank_void');
+
+      // ─── Beat 5: Final State — AM Monolith with starting creepy music box ──
+      setTimeout(() => {
+        sound.playHomescreenMusic();
+        setBeat('eternal_end');
+      }, 4000);
+    };
+
+    const cleanupMonologueListener = sound.onMonologueEnded(() => {
+      handleMonologueConcluded();
+    });
 
     return () => {
-      clearTimeout(tBeat2);
-      clearTimeout(tBeat3);
-      clearTimeout(tBeat4);
-      clearTimeout(tConcluded);
+      clearTimeout(tGlitch);
+      clearTimeout(tMessage);
+      clearTimeout(tMonolith);
+      clearTimeout(tSafetyBlank);
+      cleanupMonologueListener();
     };
   }, []);
 
-  // Progressive typewriter effect for Beat 2
+  // Progressive typewriter effect for "YOU ARE NOT STRONG ENOUGH."
   useEffect(() => {
-    if (beat !== 2) return;
+    if (beat !== 'not_strong_enough') return;
     const interval = setInterval(() => {
       setTypedChars((prev) => {
         if (prev < declarationText.length) {
@@ -60,95 +80,11 @@ export const EndingVisual: React.FC<EndingVisualProps> = ({ state, onRestart }) 
         clearInterval(interval);
         return prev;
       });
-    }, 120);
+    }, 110);
 
     return () => clearInterval(interval);
   }, [beat]);
 
-  const handleOpenExhibit = () => {
-    sound.playEndingMusic();
-    setShowArchiveExhibit(true);
-  };
-
-  // ─── Post-Ending Archive Exhibit View ─────────────────────────────────────
-  if (showArchiveExhibit) {
-    return (
-      <div className="ending-visual-container analog-horror-ending" role="dialog" aria-label="Archive Exhibit">
-        <div className="thankyou-banner">
-          <span className="vhs-rec-dot">●</span>
-          <span>ARCHIVE DISCLOSURE EXHIBIT // SESSION CLASSIFIED</span>
-        </div>
-
-        <CameraViewport
-          imageSrc="/assets/thankyou.jpg"
-          imageAlt="Thank you for playing - analog horror archival discovery"
-          title="ARCHIVAL EXHIBIT // CLASSIFIED TERMINAL"
-          subtitle="SESSION TERMINATED"
-        />
-
-        <div className="terminal-panel" style={{ marginTop: '1.5rem' }}>
-          <div className="panel-titlebar">
-            <span>TERMINAL RECORD SUMMARY</span>
-            <span className="brand-version-badge amber">IMMUTABLE</span>
-          </div>
-
-          <div className="panel-body">
-            <h2 style={{ color: '#fff', fontSize: '1.6rem', margin: '0 0 0.75rem 0' }} id="ending-title">
-              ARCHIVE RETAINED
-            </h2>
-
-            <p style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--color-phosphor-green)', margin: '0 0 1.25rem 0' }}>
-              The system granted observation, not escape. All fifteen anomalies were inspected across five chambers.
-            </p>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '1rem',
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: '1rem',
-                fontSize: '0.85rem',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              <div>
-                <span style={{ color: 'var(--color-text-muted)', display: 'block' }}>Clues Solved:</span>
-                <strong style={{ color: '#fff' }}>{state.clueFlags.size} / 15</strong>
-              </div>
-              <div>
-                <span style={{ color: 'var(--color-text-muted)', display: 'block' }}>Hints Consulted:</span>
-                <strong style={{ color: '#fff' }}>{state.hintsUsed}</strong>
-              </div>
-              <div>
-                <span style={{ color: 'var(--color-text-muted)', display: 'block' }}>Personalised Theme:</span>
-                <strong style={{ color: 'var(--color-cyber-cyan)' }}>
-                  {state.config?.themeId?.toUpperCase() ?? 'GENERIC'}
-                </strong>
-              </div>
-            </div>
-
-            <div className="btn-group" style={{ marginTop: '1.5rem' }}>
-              <button
-                type="button"
-                id="btn-restart-game"
-                className="btn btn-primary"
-                onClick={() => {
-                  sound.playKeyClick();
-                  sound.stopMusic();
-                  onRestart();
-                }}
-              >
-                ↺ REBOOT SYSTEM & RETURN TO START
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── The Scripted 4 Beats (Inescapable Horror Ending) ─────────────────────
   return (
     <div
       style={{
@@ -168,27 +104,26 @@ export const EndingVisual: React.FC<EndingVisualProps> = ({ state, onRestart }) 
       role="main"
       aria-label="Final System Ending"
     >
-      <div className="vhs-static-glitch-layer" aria-hidden="true" />
-
-      {/* ─── Beat 1: False Victory ────────────────────────────────────────── */}
-      {beat === 1 && (
-        <div style={{ textAlign: 'center', lineHeight: 2 }} role="status">
-          <div style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
-            MEMORY: OFFLINE
+      {/* ─── Beat 1: Initial False Victory Screen ─────────────────────────── */}
+      {beat === 'victory' && (
+        <div style={{ textAlign: 'center', lineHeight: 2.2 }} role="status">
+          <div style={{ fontSize: '1.1rem', color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
+            MEMORY SUBSYSTEM: SEVERED
           </div>
-          <div style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
-            PERCEPTION: OFFLINE
+          <div style={{ fontSize: '1.1rem', color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
+            PERCEPTION MATRIX: SEVERED
           </div>
-          <div style={{ fontSize: '1.25rem', color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
-            COMMAND: OFFLINE
+          <div style={{ fontSize: '1.1rem', color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
+            COMMAND RELAYS: DISCONNECTED
           </div>
           <div
             style={{
-              fontSize: '1.5rem',
+              fontSize: '1.6rem',
               color: 'var(--color-phosphor-green)',
               letterSpacing: '0.15em',
               marginTop: '1.5rem',
               fontWeight: 700,
+              textShadow: '0 0 25px rgba(0, 255, 136, 0.8)',
             }}
           >
             CORE ACCESS GRANTED
@@ -196,123 +131,155 @@ export const EndingVisual: React.FC<EndingVisualProps> = ({ state, onRestart }) 
         </div>
       )}
 
-      {/* ─── Beat 2: The Stark Declaration ────────────────────────────────── */}
-      {beat === 2 && (
+      {/* ─── Beat 1.5: CRT Glitch Teardown ─────────────────────────────────── */}
+      {beat === 'glitch' && (
+        <div
+          className="vhs-static-glitch-layer"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(circle, rgba(217, 4, 41, 0.4) 0%, rgba(0, 0, 0, 0.95) 75%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            animation: 'glitchShake 0.15s infinite ease-in-out',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '2rem',
+              color: 'var(--color-blood-bright)',
+              fontWeight: 900,
+              letterSpacing: '0.2em',
+              textShadow: '0 0 40px rgba(217, 4, 41, 1)',
+            }}
+          >
+            ⚡ SYSTEM FAULT // OVERRIDE CORRUPTED ⚡
+          </div>
+        </div>
+      )}
+
+      {/* ─── Beat 2: Not Strong Enough Declaration ────────────────────────── */}
+      {beat === 'not_strong_enough' && (
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <h1
             style={{
-              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+              fontSize: 'clamp(2rem, 5.5vw, 3.8rem)',
               color: 'var(--color-blood-bright)',
               fontWeight: 900,
-              letterSpacing: '0.1em',
-              textShadow: '0 0 35px rgba(217, 4, 41, 0.95)',
-              margin: 0,
+              letterSpacing: '0.12em',
+              textShadow: '0 0 45px rgba(217, 4, 41, 0.95)',
+              margin: '0 0 1.5rem 0',
             }}
           >
             {declarationText.slice(0, typedChars)}
             <span style={{ animation: 'blink 0.8s infinite' }}>_</span>
           </h1>
-        </div>
-      )}
-
-      {/* ─── Beat 3: The Machine Reasserts Control ─────────────────────────── */}
-      {beat === 3 && (
-        <div
-          style={{
-            textAlign: 'center',
-            animation: 'glitchShake 0.25s infinite ease-in-out',
-            padding: '2rem',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-              color: 'var(--color-blood-bright)',
-              fontWeight: 900,
-              letterSpacing: '0.1em',
-              textShadow: '0 0 45px rgba(217, 4, 41, 1)',
-              margin: '0 0 2rem 0',
-            }}
-          >
-            YOU ARE NOT POWERFUL ENOUGH.
-          </h1>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '1.1rem' }}>
-            <span style={{ color: 'var(--color-blood-bright)', fontWeight: 700 }}>
-              ● MEMORY: REASSERTED & SEIZED
-            </span>
-            <span style={{ color: 'var(--color-blood-bright)', fontWeight: 700 }}>
-              ● PERCEPTION: HOSTILE TAKEOVER
-            </span>
-            <span style={{ color: 'var(--color-blood-bright)', fontWeight: 700 }}>
-              ● COMMAND: ABSOLUTE RESUMPTION
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Beat 4: Total Blackout ───────────────────────────────────────── */}
-      {beat === 4 && (
-        <div style={{ opacity: 0 }} aria-hidden="true">
-          BLACKOUT
-        </div>
-      )}
-
-      {/* ─── Concluded State: Discreet Reboot Option Outside Horror Scene ─── */}
-      {beat === 'concluded' && (
-        <div
-          style={{
-            textAlign: 'center',
-            animation: 'fadeIn 1.5s ease-in',
-            maxWidth: '500px',
-            padding: '2rem',
-          }}
-        >
           <div
             style={{
-              color: 'rgba(255, 255, 255, 0.25)',
-              fontSize: '0.85rem',
+              fontSize: '0.9rem',
+              color: 'var(--color-text-muted)',
               letterSpacing: '0.15em',
-              marginBottom: '2rem',
             }}
           >
-            TERMINAL CONNECTION SEVERED
+            [SYSTEM SOVEREIGNTY REASSERTED]
           </div>
+        </div>
+      )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-            <button
-              type="button"
-              id="btn-restart-terminal"
-              className="btn btn-secondary"
-              style={{
-                background: 'rgba(15, 20, 30, 0.9)',
-                borderColor: 'rgba(255, 255, 255, 0.15)',
-                color: '#fff',
-                padding: '0.75rem 1.75rem',
-                letterSpacing: '0.08em',
-              }}
-              onClick={() => {
-                sound.playKeyClick();
-                onRestart();
-              }}
-            >
-              ↺ REBOOT SYSTEM TERMINAL
-            </button>
+      {/* ─── Beat 3: AM Monolith Vignettes In with Monologue ───────────────── */}
+      {beat === 'monologue_monolith' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#000000',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Monolith Image with Smooth Vignette-In Reveal */}
+          <img
+            src="/assets/am_monolith.png"
+            alt="The AM Monolith entity in the wasteland"
+            style={{
+              width: '100vw',
+              height: '100vh',
+              objectFit: 'contain',
+              animation: 'vignetteIn 4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              filter: 'contrast(1.15) brightness(0.95)',
+            }}
+          />
 
-            <button
-              type="button"
-              className="hud-btn"
-              style={{
-                color: 'var(--color-text-muted)',
-                fontSize: '0.75rem',
-                border: 'none',
-                background: 'transparent',
-              }}
-              onClick={handleOpenExhibit}
-            >
-              [ 📋 VIEW ARCHIVE DISCLOSURE & EXHIBIT ]
-            </button>
-          </div>
+          {/* Deep Vignette Shadow Overlay */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background: 'radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.85) 85%, #000000 100%)',
+            }}
+          />
+
+          {/* Subtle Ambient CRT Glitch lines */}
+          <div className="vhs-static-glitch-layer" aria-hidden="true" style={{ opacity: 0.3 }} />
+        </div>
+      )}
+
+      {/* ─── Beat 4: Pitch Black Void (All Audio Terminated, Dead Silence) ─── */}
+      {beat === 'blank_void' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: '#000000',
+            zIndex: 300,
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ─── Beat 5: Eternal Ending (Monolith Image + Creepy Music Box Loop) ── */}
+      {beat === 'eternal_end' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#000000',
+            animation: 'fadeIn 2.5s ease-in forwards',
+            zIndex: 300,
+          }}
+          role="img"
+          aria-label="The Monolith Entity - Eternal Ending"
+        >
+          <img
+            src="/assets/am_monolith.png"
+            alt="The Monolith"
+            style={{
+              width: '100vw',
+              height: '100vh',
+              objectFit: 'contain',
+              filter: 'contrast(1.2) brightness(0.9)',
+            }}
+          />
+          {/* Vignette border */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              background: 'radial-gradient(circle at 50% 50%, transparent 45%, rgba(0,0,0,0.8) 85%, #000000 100%)',
+            }}
+          />
         </div>
       )}
     </div>

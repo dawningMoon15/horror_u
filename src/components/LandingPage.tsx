@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { sound } from '../lib/soundEffects';
 
 interface LandingPageProps {
@@ -6,24 +6,106 @@ interface LandingPageProps {
   onStartGeneric: () => void;
 }
 
+// ─── Scroll-Triggered Progressive Typewriter Component ───────────────────────
+const ScrollTypewriter: React.FC<{
+  text: string;
+  speed?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  as?: 'h1' | 'h2' | 'h3' | 'p' | 'div' | 'span';
+}> = ({ text, speed = 20, className, style, as: Component = 'span' }) => {
+  const [displayedText, setDisplayedText] = useState(() =>
+    typeof IntersectionObserver === 'undefined' ? text : ''
+  );
+  const [hasStarted, setHasStarted] = useState(() =>
+    typeof IntersectionObserver === 'undefined'
+  );
+  const elementRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [text]);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx += 1;
+      setDisplayedText(text.slice(0, idx));
+      if (idx >= text.length) {
+        clearInterval(interval);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [hasStarted, text, speed]);
+
+  const Tag = Component as unknown as React.ElementType;
+
+  return (
+    <Tag ref={elementRef} className={className} style={style}>
+      {hasStarted ? displayedText : ''}
+      {hasStarted && displayedText.length < text.length && (
+        <span style={{ animation: 'blink 0.7s infinite', color: 'var(--color-blood-bright)' }}>_</span>
+      )}
+    </Tag>
+  );
+};
+
 export const LandingPage: React.FC<LandingPageProps> = ({
   onStartConsent,
   onStartGeneric,
 }) => {
   const [showDataPolicy, setShowDataPolicy] = useState(false);
 
-  // Play Creepy Old Music Box on homescreen
+  // Play Creepy Old Music Box on homescreen: load immediately + gesture fallback
   useEffect(() => {
     sound.playHomescreenMusic();
+
+    const handleFirstGesture = () => {
+      sound.playHomescreenMusic();
+    };
+
+    window.addEventListener('click', handleFirstGesture, { once: true });
+    window.addEventListener('pointerdown', handleFirstGesture, { once: true });
+    window.addEventListener('keydown', handleFirstGesture, { once: true });
+    window.addEventListener('scroll', handleFirstGesture, { once: true });
+
+    return () => {
+      window.removeEventListener('click', handleFirstGesture);
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+      window.removeEventListener('scroll', handleFirstGesture);
+    };
   }, []);
 
   const handlePersonalised = () => {
     sound.playKeyClick();
+    // Kiosk fullscreen mode like HirePro / exam proctoring
+    document.documentElement.requestFullscreen?.().catch(() => {});
     onStartConsent();
   };
 
   const handleGeneric = () => {
     sound.playKeyClick();
+    // Kiosk fullscreen mode
+    document.documentElement.requestFullscreen?.().catch(() => {});
     onStartGeneric();
   };
 
@@ -52,15 +134,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <span style={{ color: 'var(--color-phosphor-green)' }} aria-hidden="true">●</span> EXPERIMENTAL RETRO-COMPUTING MYSTERY
         </div>
 
-        {/* Cinematic Title */}
-        <h1 className="screen-title anim-rise anim-delay-2">
-          THE CONTEXT
-        </h1>
-        <p className="screen-subtitle anim-rise anim-delay-3">
-          A short browser-based psychological horror escape room personalised by your chosen AI
-          assistant. Explore an antiquated terminal where your harmless digital curiosities
-          reappear inside an eerie fictional anomaly.
-        </p>
+        {/* Cinematic Title & Subtitle with Scroll-Triggered Typewriter Format */}
+        <ScrollTypewriter
+          as="h1"
+          text="THE CONTEXT"
+          speed={45}
+          className="screen-title anim-rise anim-delay-2"
+        />
+
+        <ScrollTypewriter
+          as="p"
+          text="A short browser-based psychological horror escape room personalised by your chosen AI assistant. Explore an antiquated terminal where your harmless digital curiosities reappear inside an eerie fictional anomaly."
+          speed={15}
+          className="screen-subtitle anim-rise anim-delay-3"
+        />
 
         {/* Narrative Terminal Window */}
         <section
@@ -79,20 +166,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </span>
           </div>
           <div className="panel-body">
-            <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--color-text-primary)' }}>
-              &gt; SYSTEM RESTORED. You wake up seated in front of an illuminated monochromatic monitor.
-              <br />
-              &gt; The directory trees, audio frequencies, and log files seem faintly familiar—as if woven
-              from fragments of thoughts you explored only moments ago.
-              <br />
-              &gt; To unlock the exit before the session loops, you must examine the records and solve
-              three linked logical puzzles.
-            </p>
+            <ScrollTypewriter
+              as="p"
+              text="> SYSTEM RESTORED. You wake up seated in front of an illuminated monochromatic monitor. > The directory trees, audio frequencies, and log files seem faintly familiar—as if woven from fragments of thoughts you explored only moments ago. > To unlock the exit before the session loops, you must examine the records and solve three linked logical puzzles."
+              speed={12}
+              style={{ margin: 0, lineHeight: 1.6, color: 'var(--color-text-primary)', fontFamily: 'var(--font-mono)' }}
+            />
           </div>
         </section>
 
         {/* Feature Grid: How It Works */}
-        <h2
+        <ScrollTypewriter
+          as="h2"
+          text="HOW PERSONALISATION WORKS"
+          speed={30}
           className="anim-rise anim-delay-5"
           style={{
             fontSize: '1.25rem',
@@ -101,9 +188,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             letterSpacing: '0.05em',
             fontFamily: 'var(--font-display)',
           }}
-        >
-          HOW PERSONALISATION WORKS
-        </h2>
+        />
 
         <div className="feature-grid anim-rise anim-delay-5">
           <div className="feature-card">
@@ -111,10 +196,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="feature-card-number">STEP 01</span>
               <h3 className="feature-card-title">Copy Prompt</h3>
             </div>
-            <p className="feature-card-desc">
-              Copy the structured prompt into ChatGPT, Claude, Gemini, or your preferred AI. The prompt
-              restricts output to strict allowlists (e.g. astronomy, retro-computing, mythology).
-            </p>
+            <ScrollTypewriter
+              as="p"
+              text="Copy the structured prompt into ChatGPT, Claude, Gemini, or your preferred AI. The prompt restricts output to strict allowlists (e.g. astronomy, retro-computing, mythology)."
+              speed={14}
+              className="feature-card-desc"
+            />
           </div>
 
           <div className="feature-card">
@@ -122,10 +209,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="feature-card-number">STEP 02</span>
               <h3 className="feature-card-title">Memory Capsule</h3>
             </div>
-            <p className="feature-card-desc">
-              Your assistant encodes harmless interest categories into a compact base64 payload.
-              No passwords, personal names, locations, or direct quotes are ever permitted.
-            </p>
+            <ScrollTypewriter
+              as="p"
+              text="Your assistant encodes harmless interest categories into a compact base64 payload. No passwords, personal names, locations, or direct quotes are ever permitted."
+              speed={14}
+              className="feature-card-desc"
+            />
           </div>
 
           <div className="feature-card">
@@ -133,10 +222,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="feature-card-number">STEP 03</span>
               <h3 className="feature-card-title">Escape The Room</h3>
             </div>
-            <p className="feature-card-desc">
-              Paste the capsule to awaken the room’s skin, audio tone, and clue variants.
-              Every puzzle remains 100% deterministic, verifiable, and solvable.
-            </p>
+            <ScrollTypewriter
+              as="p"
+              text="Paste the capsule to awaken the room's skin, audio tone, and clue variants. Every puzzle remains 100% deterministic, verifiable, and solvable."
+              speed={14}
+              className="feature-card-desc"
+            />
           </div>
         </div>
 
