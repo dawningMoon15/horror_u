@@ -26,6 +26,15 @@
   --color-cyan-glow: rgba(0, 229, 255, 0.35);
   --color-ghost-violet: #a855f7;
 
+  /* Visceral Blood & Emergency Red Tokens */
+  --color-blood-deep: #4a0202;
+  --color-blood: #8a0303;
+  --color-blood-bright: #d90429;
+  --color-blood-glow: rgba(217, 4, 41, 0.55);
+  --color-emergency-red: #ff103f;
+  --color-emergency-glow: rgba(255, 16, 63, 0.45);
+  --shadow-blood-glow: 0 0 25px rgba(217, 4, 41, 0.45);
+
   /* Typography Colors */
   --color-text-primary: #e6edf3;
   --color-text-secondary: #94a3b8;

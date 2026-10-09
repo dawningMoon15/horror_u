@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { GameState, GameAction } from '../game/gameReducer';
 import { getPuzzleById } from '../game/puzzles';
 import { sound } from '../lib/soundEffects';
+import { narrator } from '../lib/narrator';
+import { getPersonalisedAnomalyData } from '../lib/personalisationApi';
 
 import { Level1Visual } from './visual/Level1Visual';
 import { Level2Visual } from './visual/Level2Visual';
@@ -15,10 +17,54 @@ interface GameShellProps {
 
 export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
   const [answerInput, setAnswerInput] = useState('');
-  const [viewMode, setViewMode] = useState<'visual' | 'terminal'>('visual');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRedAlert, setIsRedAlert] = useState(true);
+  const [isNarratorOn, setIsNarratorOn] = useState(() => narrator.isNarratorEnabled());
+  const [showHintModal, setShowHintModal] = useState(false);
 
   const currentPuzzle = state.currentPuzzleId ? getPuzzleById(state.currentPuzzleId) : null;
   const isEnding = state.appState === 'ENDING';
+
+  const anomalyData = getPersonalisedAnomalyData(
+    state.config?.themeId,
+    state.config?.visualVariant
+  );
+
+  // Auto-narrate room introduction on level entry
+  useEffect(() => {
+    if (isEnding) return;
+    if (currentPuzzle) {
+      narrator.speak(currentPuzzle.promptText);
+    }
+    return () => {
+      narrator.stop();
+    };
+  }, [state.appState, currentPuzzle, isEnding]);
+
+  const toggleFullscreen = () => {
+    sound.playKeyClick();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+      setIsFullscreen(false);
+    }
+  };
+
+  const toggleNarrator = () => {
+    sound.playKeyClick();
+    const nextVal = narrator.toggle();
+    setIsNarratorOn(nextVal);
+    if (nextVal && currentPuzzle) {
+      narrator.speak(`Voice transmission active. ${currentPuzzle.promptText}`);
+    }
+  };
+
+  const toggleRedAlert = () => {
+    sound.playKeyClick();
+    setIsRedAlert((prev) => !prev);
+  };
 
   const handleAnswerSubmit = (e?: React.FormEvent, customAnswer?: string) => {
     if (e) e.preventDefault();
@@ -37,6 +83,12 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
   const handleHintRequest = () => {
     sound.playKeyClick();
     dispatch({ type: 'REQUEST_HINT' });
+    setShowHintModal(true);
+    const hints = currentPuzzle?.hints ?? [];
+    const hintIdx = state.hintIndex;
+    if (hints[hintIdx]) {
+      narrator.speak(`Hint transmission: ${hints[hintIdx]}`);
+    }
   };
 
   const handleRestart = () => {
@@ -58,214 +110,266 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
   };
 
   return (
-    <main className="game-level-screen" role="main">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <div className="badge-tag green" style={{ margin: 0 }}>
-          <span aria-hidden="true">▶</span> LEVEL {levelNumber} OF 3: {levelNames[levelNumber]}
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            type="button"
-            className={`icon-btn-toggle ${viewMode === 'visual' ? 'active' : ''}`}
-            onClick={() => { sound.playKeyClick(); setViewMode('visual'); }}
-            title="Switch to 3D room perspective with dragging and tactile clicking"
-          >
-            👁️ 3D ROOM VIEW
-          </button>
-          <button
-            type="button"
-            className={`icon-btn-toggle ${viewMode === 'terminal' ? 'active' : ''}`}
-            onClick={() => { sound.playKeyClick(); setViewMode('terminal'); }}
-            title="Switch to raw terminal console"
-          >
-            📟 TERMINAL CONSOLE
-          </button>
-        </div>
-      </div>
-
-      <h1 className="screen-title" style={{ fontSize: '2.1rem' }}>
-        LEVEL {levelNumber}: {levelNames[levelNumber]}
-      </h1>
-
-      {/* ─── 3D Visual Interactive Gameplay Room ─────────────────────── */}
-      {viewMode === 'visual' && (
-        <section aria-label="Interactive 3D Room Experience">
-          {levelNumber === '1' && (
-            <Level1Visual
-              onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
-              unlocked={state.clueFlags.has('L1_DRAWER_OPEN')}
-            />
-          )}
-
-          {levelNumber === '2' && (
-            <Level2Visual
-              onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
-              unlocked={state.clueFlags.has('L2_CONTRADICTION_FOUND')}
-            />
-          )}
-
-          {levelNumber === '3' && (
-            <Level3Visual
-              onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
-              unlocked={state.clueFlags.has('L3_EXIT_OPEN')}
-            />
-          )}
-        </section>
-      )}
-
-      {/* ─── Narrative & Diagnostic Terminal Window ──────────────────── */}
-      <div className="terminal-panel">
-        <div className="panel-titlebar">
-          <span>ACTIVE MONITOR // {currentPuzzle?.id ?? 'ANOMALY'}</span>
-          <span className="brand-version-badge" style={{ color: 'var(--color-cyber-cyan)' }}>
-            THEME: {state.config?.themeId?.toUpperCase() ?? 'GENERIC'}
-          </span>
-        </div>
-
-        <div className="panel-body">
+    <div
+      className="game-fullscreen-stage"
+      role="main"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 100,
+        background: '#040204',
+      }}
+    >
+      {/* ─── Top Tactical HUD Bar ────────────────────────────────────────── */}
+      <header className="game-fullscreen-hud-top" aria-label="Game HUD Bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           <div
+            className="hud-pill"
             style={{
-              padding: '1.25rem',
-              background: 'rgba(0, 0, 0, 0.4)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-sm)',
-              marginBottom: '1.5rem',
+              background: 'rgba(217, 4, 41, 0.18)',
+              border: '1px solid rgba(217, 4, 41, 0.45)',
+              color: '#fff',
+              fontSize: '0.8rem',
+              fontWeight: 700,
             }}
           >
-            <p
-              style={{
-                margin: 0,
-                fontSize: '1.05rem',
-                lineHeight: 1.6,
-                color: 'var(--color-text-primary)',
-              }}
-              id="puzzle-prompt"
-            >
-              &gt; {currentPuzzle?.promptText}
-            </p>
+            <span style={{ color: 'var(--color-blood-bright)' }}>🔴</span>
+            <span>LEVEL {levelNumber} OF 3: {levelNames[levelNumber]}</span>
           </div>
 
-          {/* Error Message */}
-          {state.errorMessage && (
-            <div
-              className="callout-box danger"
-              id="puzzle-error-message"
-              role="alert"
-              style={{ marginBottom: '1.25rem' }}
-            >
-              <span>✕</span>
-              <span>{state.errorMessage}</span>
-            </div>
-          )}
+          <div
+            className="hud-pill"
+            style={{
+              background: 'rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              fontSize: '0.75rem',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            <span>ANOMALY: {anomalyData.theme.toUpperCase()}</span>
+          </div>
+        </div>
 
-          {/* Answer Form */}
-          <form onSubmit={(e) => handleAnswerSubmit(e)} style={{ marginBottom: '1.5rem' }}>
-            <label htmlFor="puzzle-answer-input" className="form-label">
-              Enter Terminal Decryption Command / Answer:
-            </label>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <input
-                id="puzzle-answer-input"
-                type="text"
-                className="terminal-input"
-                style={{ flex: '1 1 240px' }}
-                placeholder="Type your answer..."
-                value={answerInput}
-                onChange={(e) => setAnswerInput(e.target.value)}
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <button
-                type="submit"
-                id="btn-submit-answer"
-                className="btn btn-primary"
-                disabled={!answerInput.trim()}
-              >
-                SUBMIT ANSWER ↵
-              </button>
-            </div>
-          </form>
+        {/* HUD Game Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            type="button"
+            className={`hud-btn ${isNarratorOn ? 'active' : ''}`}
+            onClick={toggleNarrator}
+            title="Toggle interactive speech narration"
+            style={{
+              background: isNarratorOn ? 'rgba(0, 255, 136, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+              borderColor: isNarratorOn ? 'var(--color-phosphor-green)' : 'var(--border-subtle)',
+              color: isNarratorOn ? 'var(--color-phosphor-green)' : 'var(--color-text-secondary)',
+            }}
+          >
+            {isNarratorOn ? '🔊 VOICE: ON' : '🔇 VOICE: OFF'}
+          </button>
 
-          {/* Hint Drawer */}
-          {currentPuzzle && currentPuzzle.hints.length > 0 && (
-            <div
+          <button
+            type="button"
+            className={`hud-btn ${isRedAlert ? 'active' : ''}`}
+            onClick={toggleRedAlert}
+            title="Toggle blood emergency red alert lights"
+            style={{
+              background: isRedAlert ? 'rgba(217, 4, 41, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+              borderColor: isRedAlert ? 'var(--color-blood-bright)' : 'var(--border-subtle)',
+              color: isRedAlert ? '#ff5277' : 'var(--color-text-secondary)',
+            }}
+          >
+            {isRedAlert ? '🚨 RED ALERT' : '💡 NORMAL LIGHT'}
+          </button>
+
+          <button
+            type="button"
+            className="hud-btn"
+            onClick={toggleFullscreen}
+            title="Toggle browser full screen mode"
+          >
+            {isFullscreen ? '⛷ EXIT FULLSCREEN' : '⛶ FULLSCREEN'}
+          </button>
+        </div>
+      </header>
+
+      {/* ─── Central 3D Viewport Area ───────────────────────────────────── */}
+      <section className="game-fullscreen-viewport-area" aria-label="3D Room Perspective">
+        {levelNumber === '1' && (
+          <Level1Visual
+            onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+            unlocked={state.clueFlags.has('L1_DRAWER_OPEN')}
+          />
+        )}
+
+        {levelNumber === '2' && (
+          <Level2Visual
+            onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+            unlocked={state.clueFlags.has('L2_CONTRADICTION_FOUND')}
+          />
+        )}
+
+        {levelNumber === '3' && (
+          <Level3Visual
+            onSolve={(ans) => handleAnswerSubmit(undefined, ans)}
+            unlocked={state.clueFlags.has('L3_EXIT_OPEN')}
+          />
+        )}
+      </section>
+
+      {/* ─── Bottom Tactical Cockpit HUD Bar ────────────────────────────── */}
+      <footer className="game-fullscreen-hud-bottom" aria-label="Tactical Command Dock">
+        {/* Objective & Narrative Prompt */}
+        <div style={{ flex: '1 1 340px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div
+            style={{
+              background: 'rgba(0, 0, 0, 0.65)',
+              border: '1px solid rgba(217, 4, 41, 0.35)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.4rem 0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              width: '100%',
+            }}
+          >
+            <span style={{ color: 'var(--color-blood-bright)', fontSize: '0.9rem' }}>🎯</span>
+            <p
+              id="puzzle-prompt"
               style={{
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: '1.25rem',
-                marginTop: '1rem',
+                margin: 0,
+                fontSize: '0.85rem',
+                lineHeight: 1.4,
+                color: 'var(--color-text-primary)',
+                fontFamily: 'var(--font-mono)',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  HINTS REVEALED: {state.hintIndex} / {currentPuzzle.hints.length}
-                </span>
+              {currentPuzzle?.promptText}
+            </p>
+          </div>
+        </div>
 
-                {state.hintIndex < currentPuzzle.hints.length && (
-                  <button
-                    type="button"
-                    id="btn-request-hint"
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
-                    onClick={handleHintRequest}
-                  >
-                    💡 REQUEST HINT (+1 USED)
-                  </button>
-                )}
-              </div>
+        {/* Answer Decryption Form */}
+        <form
+          onSubmit={(e) => handleAnswerSubmit(e)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '0 1 420px' }}
+        >
+          <label htmlFor="puzzle-answer-input" className="sr-only" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden' }}>
+            Enter Terminal Decryption:
+          </label>
+          <input
+            id="puzzle-answer-input"
+            aria-label="Enter Terminal Decryption"
+            type="text"
+            className="terminal-input"
+            style={{
+              padding: '0.5rem 0.85rem',
+              fontSize: '0.85rem',
+              height: '38px',
+              background: 'rgba(10, 4, 8, 0.85)',
+              borderColor: 'rgba(217, 4, 41, 0.4)',
+            }}
+            placeholder="Enter decryption answer / code..."
+            value={answerInput}
+            onChange={(e) => setAnswerInput(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <button
+            type="submit"
+            id="btn-submit-answer"
+            className="btn btn-primary"
+            disabled={!answerInput.trim()}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.82rem',
+              height: '38px',
+              whiteSpace: 'nowrap',
+              background: 'var(--color-blood-bright)',
+              borderColor: 'var(--color-blood-bright)',
+              boxShadow: '0 0 15px rgba(217, 4, 41, 0.5)',
+            }}
+          >
+            SUBMIT ANSWER ↵
+          </button>
+        </form>
 
-              {state.hintIndex > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {currentPuzzle.hints.slice(0, state.hintIndex).map((hint, idx) => (
-                    <div
-                      key={idx}
-                      className="callout-box info"
-                      style={{ margin: 0, padding: '0.65rem 0.85rem' }}
-                    >
-                      <span>💡</span>
-                      <span>
-                        <strong>Hint {idx + 1}:</strong> {hint}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        {/* Hint Beacon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {currentPuzzle && currentPuzzle.hints.length > 0 && (
+            <button
+              type="button"
+              className="hud-btn"
+              onClick={handleHintRequest}
+              style={{
+                color: 'var(--color-terminal-amber)',
+                borderColor: 'rgba(245, 158, 11, 0.4)',
+                background: 'rgba(245, 158, 11, 0.1)',
+                padding: '0.45rem 0.85rem',
+              }}
+            >
+              💡 HINT ({Math.max(0, currentPuzzle.hints.length - state.hintIndex)})
+            </button>
           )}
         </div>
-      </div>
+      </footer>
 
-      {/* Clue Flags Inventory */}
-      <section className="terminal-panel" aria-label="Discovered Clues Inventory">
-        <div className="panel-titlebar">
-          <span>INVENTORY // UNLOCKED CLUE SIGNALS</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-phosphor-green)' }}>
-            {state.clueFlags.size} DISCOVERED
-          </span>
+      {/* Error Callout Overlay */}
+      {state.errorMessage && (
+        <div
+          className="callout-box danger"
+          id="puzzle-error-message"
+          role="alert"
+          style={{
+            position: 'absolute',
+            top: '4.5rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 60,
+            background: 'rgba(50, 4, 10, 0.95)',
+            border: '1px solid var(--color-blood-bright)',
+            boxShadow: '0 0 30px rgba(217, 4, 41, 0.6)',
+            padding: '0.6rem 1.25rem',
+          }}
+        >
+          <span>✕</span>
+          <span>{state.errorMessage}</span>
         </div>
-        <div className="panel-body">
-          {state.clueFlags.size === 0 ? (
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-              No clues discovered yet. Solve the current puzzle or explore the 3D room to unlock records.
+      )}
+
+      {/* Tactical Hint Modal */}
+      {showHintModal && currentPuzzle && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '4.5rem',
+            right: '1.25rem',
+            maxWidth: '360px',
+            background: 'rgba(12, 16, 26, 0.96)',
+            border: '1px solid var(--border-warning)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '1rem',
+            zIndex: 60,
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.8)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-terminal-amber)', fontWeight: 700 }}>
+              💡 ANOMALY TRANSMISSION
             </span>
-          ) : (
-            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-              {Array.from(state.clueFlags).map((flag) => (
-                <span key={flag} className="badge-tag green" style={{ margin: 0 }}>
-                  ✓ {flag}
-                </span>
-              ))}
-            </div>
-          )}
+            <button
+              type="button"
+              onClick={() => setShowHintModal(false)}
+              style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+            >
+              ✕
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: '#fff', lineHeight: 1.4 }}>
+            {currentPuzzle.hints[Math.max(0, state.hintIndex - 1)] ?? 'Examine the room hotspots closely.'}
+          </p>
         </div>
-      </section>
-    </main>
+      )}
+    </div>
   );
 };

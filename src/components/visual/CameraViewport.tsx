@@ -17,6 +17,7 @@ interface CameraViewportProps {
   hotspots?: Hotspot[];
   isZoomed?: boolean;
   onToggleZoom?: () => void;
+  isRedAlert?: boolean;
   children?: React.ReactNode;
 }
 
@@ -28,6 +29,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   hotspots = [],
   isZoomed = false,
   onToggleZoom,
+  isRedAlert = true,
   children,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,6 +86,24 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
           className={`viewport-bg-image ${isZoomed ? 'zoomed' : ''}`}
         />
         <div className="viewport-spotlight-layer" aria-hidden="true" />
+        {/* Blood-red vignette and crimson emergency hazard strobe */}
+        <div className="viewport-blood-vignette" aria-hidden="true" />
+        {isRedAlert && <div className="viewport-emergency-strobe" aria-hidden="true" />}
+        <svg
+          className="blood-lens-splatters"
+          viewBox="0 0 1000 600"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M780,0 Q820,60 850,40 Q880,120 900,30 Q940,90 980,10 L1000,0 Z"
+            fill="rgba(138, 3, 3, 0.45)"
+          />
+          <circle cx="95" cy="520" r="14" fill="rgba(120, 2, 2, 0.35)" />
+          <circle cx="120" cy="535" r="9" fill="rgba(120, 2, 2, 0.3)" />
+          <circle cx="75" cy="505" r="6" fill="rgba(140, 2, 2, 0.4)" />
+          <path d="M40,590 Q120,530 140,600 Z" fill="rgba(100, 2, 2, 0.35)" />
+        </svg>
       </div>
 
       {/* Top HUD Bar */}
@@ -114,7 +134,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
           <button
             key={spot.id}
             type="button"
-            className="hotspot-marker"
+            className="hotspot-marker blood-variant"
             style={{
               left: `${spot.xPercent}%`,
               top: `${spot.yPercent}%`,
@@ -126,7 +146,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
             aria-label={spot.label}
           >
             <div className="hotspot-pulse-ring" aria-hidden="true" />
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-phosphor-green)' }}>🔍</span>
+            <span style={{ fontSize: '0.85rem' }}>🩸</span>
             <span className="hotspot-label-tooltip">{spot.label}</span>
           </button>
         ))}

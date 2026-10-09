@@ -36,179 +36,93 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({
   };
 
   return (
-    <main className="consent-screen" role="main">
+    <main className="consent-screen" role="main" style={{ maxWidth: '780px', margin: '0 auto' }}>
       <div className="badge-tag amber">
-        <span aria-hidden="true">⚠</span> PRIVACY & TRUST PROTOCOL
+        <span aria-hidden="true">🔒</span> PRIVACY PROTOCOL // ZERO SERVER STORAGE
       </div>
 
-      <h1 className="screen-title">MEMORY & DATA DISCLOSURE</h1>
-      <p className="screen-subtitle">
-        THE CONTEXT is designed around machine-enforced privacy. Before generating a prompt for your
-        AI assistant, please review how personalization operates and what is strictly prohibited.
+      <h1 className="screen-title" style={{ fontSize: '2rem' }}>
+        MEMORY & DATA DISCLOSURE
+      </h1>
+      <p className="screen-subtitle" style={{ fontSize: '0.95rem', marginBottom: '1.25rem' }}>
+        Your personal privacy is machine-enforced. Only harmless categorical tokens (e.g. astronomy, botany, retro-computing) enter the game engine.
       </p>
 
-      {/* Excluded Categories Section */}
-      <section className="terminal-panel" aria-label="Excluded Categories">
+      {/* Streamlined Exclusion Badges */}
+      <section className="terminal-panel" aria-label="Strict Exclusions" style={{ marginBottom: '1.25rem' }}>
         <div className="panel-titlebar">
-          <span>STRICT CATEGORY EXCLUSIONS</span>
+          <span>STRICT ALLOWLIST FILTER</span>
           <span className="brand-version-badge" style={{ color: 'var(--color-crimson-alert)', borderColor: 'var(--border-danger)' }}>
-            NON-NEGOTIABLE
+            SCHEMA-ENFORCED
           </span>
         </div>
-        <div className="panel-body">
-          <p style={{ margin: '0 0 1rem 0', fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-            The prompt explicitly commands your assistant to omit sensitive autobiographical context.
-            The following categories are forbidden by both prompt rules and Zod schema allowlists:
+        <div className="panel-body" style={{ padding: '1rem 1.25rem' }}>
+          <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+            The prompt and Zod schema physically prohibit sensitive data from entering the chamber:
           </p>
 
-          <div className="exclusion-grid">
-            <div className="exclusion-item">
-              <span className="exclusion-icon" aria-hidden="true">✕</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Credentials & Keys</strong>
-                Passwords, tokens, credentials, and API secrets.
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.65rem' }}>
+            <div style={{ background: 'rgba(255, 51, 102, 0.08)', border: '1px solid rgba(255, 51, 102, 0.25)', borderRadius: '4px', padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#ffb3ba' }}>
+              ✕ Credentials & Keys (Forbidden)
             </div>
-
-            <div className="exclusion-item">
-              <span className="exclusion-icon" aria-hidden="true">✕</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Real Identifiers</strong>
-                Full names, usernames, email addresses, phone numbers.
-              </div>
+            <div style={{ background: 'rgba(255, 51, 102, 0.08)', border: '1px solid rgba(255, 51, 102, 0.25)', borderRadius: '4px', padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#ffb3ba' }}>
+              ✕ Real Identifiers & PII (Forbidden)
             </div>
-
-            <div className="exclusion-item">
-              <span className="exclusion-icon" aria-hidden="true">✕</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Financial & Medical</strong>
-                Bank cards, account balances, medical or health conditions.
-              </div>
+            <div style={{ background: 'rgba(255, 51, 102, 0.08)', border: '1px solid rgba(255, 51, 102, 0.25)', borderRadius: '4px', padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#ffb3ba' }}>
+              ✕ Freeform Prompts (Forbidden)
             </div>
-
-            <div className="exclusion-item">
-              <span className="exclusion-icon" aria-hidden="true">✕</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Locations & Addresses</strong>
-                Home addresses, cities, employer locations, GPS coordinates.
-              </div>
-            </div>
-
-            <div className="exclusion-item">
-              <span className="exclusion-icon" aria-hidden="true">✕</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Raw Quotes & Logs</strong>
-                Verbatim chat logs, private confessions, autobiographical trauma.
-              </div>
-            </div>
-
-            <div className="exclusion-item">
-              <span className="exclusion-icon" aria-hidden="true">✕</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Arbitrary HTML/Code</strong>
-                Scripts, links, unescaped tags, or arbitrary executable strings.
-              </div>
+            <div style={{ background: 'rgba(0, 255, 136, 0.08)', border: '1px solid rgba(0, 255, 136, 0.25)', borderRadius: '4px', padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#b3ffd9' }}>
+              ✓ Strict Allowlist Only
             </div>
           </div>
         </div>
       </section>
 
-      {/* Technical Guarantees Section */}
-      <section className="terminal-panel" aria-label="Technical Privacy Guarantees">
-        <div className="panel-titlebar">
-          <span>MACHINE-ENFORCED PRIVACY ARCHITECTURE</span>
-          <span className="brand-version-badge">ZERO NETWORK LEAKAGE</span>
-        </div>
-        <div className="panel-body">
-          <div className="guarantee-grid">
-            <div className="guarantee-item">
-              <span className="guarantee-icon" aria-hidden="true">✓</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Content Security Policy</strong>
-                HTTP headers set <code>connect-src 'none'</code>. The browser is technically barred from
-                sending requests anywhere.
-              </div>
-            </div>
+      {/* Streamlined Checkbox Acknowledgment */}
+      <div style={{ background: 'rgba(12, 18, 30, 0.7)', border: '1px solid var(--border-medium)', borderRadius: 'var(--radius-sm)', padding: '1rem', marginBottom: '1.5rem' }}>
+        <label className="checkbox-container" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={hasAcknowledged}
+            onChange={handleCheckboxChange}
+            aria-required="true"
+          />
+          <span style={{ fontSize: '0.88rem', color: '#ffffff', fontWeight: 500 }}>
+            I understand no personal data is stored, and only harmless interest themes are ingested.
+          </span>
+        </label>
+      </div>
 
-            <div className="guarantee-item">
-              <span className="guarantee-icon" aria-hidden="true">✓</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Zero Storage of Capsule</strong>
-                Raw capsule and decoded data are never stored in localStorage, cookies, or IndexedDB.
-              </div>
-            </div>
-
-            <div className="guarantee-item">
-              <span className="guarantee-icon" aria-hidden="true">✓</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Data Shrinks Instantly</strong>
-                Input is parsed into opaque IDs (e.g. <code>themeId: "retro_computers"</code>), then raw
-                strings are destroyed in memory.
-              </div>
-            </div>
-
-            <div className="guarantee-item">
-              <span className="guarantee-icon" aria-hidden="true">✓</span>
-              <div>
-                <strong style={{ color: '#fff', display: 'block' }}>Always Voluntary</strong>
-                You can decline personalization at any point and play the entire 3-level game in Generic Mode.
-              </div>
-            </div>
-          </div>
-
-          <div className="callout-box warning" style={{ marginTop: '1.25rem' }}>
-            <span>ℹ</span>
-            <div>
-              <strong>Client-Side Best-Effort Notice:</strong> While the prompt instructs your AI to
-              exclude sensitive details, LLMs can occasionally behave unexpectedly. You are in full control
-              and can inspect the base64 payload before pasting it.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Acknowledgment Checkbox */}
-      <label className="checkbox-container">
-        <input
-          type="checkbox"
-          id="consent-checkbox"
-          checked={hasAcknowledged}
-          onChange={handleCheckboxChange}
-        />
-        <span>
-          I understand how the memory capsule operates, acknowledge the category exclusions, and wish to
-          proceed to prompt generation.
-        </span>
-      </label>
-
-      {/* Button Group */}
-      <div className="btn-group">
+      {/* Actions */}
+      <div className="btn-group" style={{ justifyContent: 'flex-start', gap: '0.75rem' }}>
         <button
           type="button"
           id="btn-agree-consent"
           className="btn btn-primary"
           disabled={!hasAcknowledged}
           onClick={handleProceed}
+          style={{ padding: '0.75rem 1.4rem' }}
         >
-          <span>→</span> PROCEED TO EXTRACTION (GENERATE PROMPT)
+          <span>→</span> PROCEED TO EXTRACTION
         </button>
 
         <button
           type="button"
-          id="btn-consent-generic"
+          id="btn-generic-consent"
           className="btn btn-secondary"
           onClick={handleGeneric}
+          style={{ padding: '0.75rem 1.25rem' }}
         >
-          <span>◈</span> PLAY IN GENERIC MODE (NO CAPSULE)
+          PLAY GENERIC (NO PERSONALISATION)
         </button>
 
         <button
           type="button"
-          id="btn-consent-back"
-          className="btn btn-ghost"
+          className="btn btn-secondary"
           onClick={handleBack}
+          style={{ opacity: 0.7, padding: '0.75rem 1rem' }}
         >
-          <span>←</span> BACK TO ARCHIVE
+          BACK TO ARCHIVE
         </button>
       </div>
     </main>
