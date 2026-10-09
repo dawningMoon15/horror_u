@@ -37,6 +37,30 @@ class SoundManager {
     this.muted = !this.muted;
     if (this.currentMusicAudio) {
       this.currentMusicAudio.muted = this.muted;
+      if (this.muted) {
+        try {
+          this.currentMusicAudio.pause();
+        } catch {
+          // ignore
+        }
+      } else {
+        try {
+          this.currentMusicAudio.play().catch(() => {});
+        } catch {
+          // ignore
+        }
+      }
+    } else if (!this.muted) {
+      if (this.currentMusicType === 'monologue') {
+        this.playAmMonologue();
+      } else if (this.currentMusicType === 'homescreen') {
+        this.playHomescreenMusic();
+      } else {
+        this.playGameMusic();
+      }
+    }
+    if (!this.muted) {
+      this.initCtx();
     }
     return this.muted;
   }
@@ -45,6 +69,19 @@ class SoundManager {
     this.muted = muted;
     if (this.currentMusicAudio) {
       this.currentMusicAudio.muted = this.muted;
+      if (this.muted) {
+        try {
+          this.currentMusicAudio.pause();
+        } catch {
+          // ignore
+        }
+      } else {
+        try {
+          this.currentMusicAudio.play().catch(() => {});
+        } catch {
+          // ignore
+        }
+      }
     }
   }
 

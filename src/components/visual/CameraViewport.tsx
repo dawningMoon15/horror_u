@@ -22,14 +22,16 @@ interface CameraViewportProps {
   isZoomed?: boolean;
   onToggleZoom?: () => void;
   onRestart?: () => void;
+  hideDefaultBgImage?: boolean;
+  custom3DScene?: React.ReactNode;
   children?: React.ReactNode;
 }
 
 export const CameraViewport: React.FC<CameraViewportProps> = ({
   imageSrc,
   imageAlt,
-  title,
-  subtitle,
+  title: _title,
+  subtitle: _subtitle,
   stepObjective,
   currentStep = 1,
   roomDuration = 120, // 2 minutes default per room
@@ -37,6 +39,8 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   isZoomed = false,
   onToggleZoom,
   onRestart,
+  hideDefaultBgImage = false,
+  custom3DScene,
   children,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -149,18 +153,52 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
         zIndex: 5,
       }}
     >
-      {/* ─── Analog Horror VHS OSD Overlay ─────────────────────────────── */}
-      <div className="vhs-osd-overlay" aria-hidden="true">
-        <div className="vhs-osd-top">
-          <div className="vhs-rec-tag">
+      {/* ─── Tactical Camera HUD Sub-Bar (Positioned cleanly below GameShell top bar) ─── */}
+      <div
+        className="viewport-hud-bar"
+        style={{
+          position: 'absolute',
+          top: '3.65rem',
+          left: '1rem',
+          right: '1rem',
+          zIndex: 40,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pointerEvents: 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div className="vhs-rec-tag" style={{ pointerEvents: 'auto' }}>
             <span className="vhs-rec-dot">●</span> REC
           </div>
-          <div className="vhs-tracking-code">SP 10/12/1987</div>
+          {stepObjective && (
+            <div className="hud-pill" style={{ background: 'rgba(6, 9, 14, 0.92)', borderColor: 'rgba(255, 255, 255, 0.12)' }}>
+              <span style={{ color: 'var(--color-terminal-amber)', fontWeight: 600 }}>
+                {stepObjective}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Urgent Countdown Timer Display */}
-        <div className={`vhs-timer-tag ${timeLeft <= 10 ? 'critical' : ''}`}>
-          <span>TIME LIMIT: {formattedTime}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          {/* Urgent Countdown Timer Display */}
+          <div className={`vhs-timer-tag ${timeLeft <= 10 ? 'critical' : ''}`} style={{ pointerEvents: 'auto' }}>
+            <span>TIME: {formattedTime}</span>
+          </div>
+
+          {onToggleZoom && (
+            <button
+              type="button"
+              className="hud-btn"
+              onClick={() => {
+                sound.playKeyClick();
+                onToggleZoom();
+              }}
+            >
+              {isZoomed ? '🔍 STEP BACK (WIDE)' : '🔎 INSPECT CLOSE-UP'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -171,19 +209,24 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
           transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         }}
       >
-        {/* Background Image: pitch black except where the cursor spotlight shines */}
-        <img
-          src={imageSrc}
-          alt={imageAlt}
-          className={`viewport-bg-image ${isZoomed ? 'zoomed' : ''}`}
-          style={{
-            maskImage: spotlightMask,
-            WebkitMaskImage: spotlightMask,
-            width: '100vw',
-            height: '100vh',
-            objectFit: 'cover',
-          }}
-        />
+        {custom3DScene ? (
+          custom3DScene
+        ) : (
+          !hideDefaultBgImage && (
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className={`viewport-bg-image ${isZoomed ? 'zoomed' : ''}`}
+              style={{
+                maskImage: spotlightMask,
+                WebkitMaskImage: spotlightMask,
+                width: '100vw',
+                height: '100vh',
+                objectFit: 'cover',
+              }}
+            />
+          )
+        )}
 
         {/* Ambient Spotlight Cone Beam following cursor */}
         {!isZoomed && !isGameOver && !isJumpscare && (
@@ -198,33 +241,6 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
             }}
             aria-hidden="true"
           />
-        )}
-      </div>
-
-      {/* Top HUD Bar */}
-      <div className="viewport-hud-bar">
-        <div className="hud-pill" style={{ background: 'rgba(6, 9, 14, 0.92)', borderColor: 'var(--border-subtle)' }}>
-          <span style={{ color: 'var(--color-phosphor-green)' }}>●</span>
-          <span>{title}</span>
-          {subtitle && <span style={{ opacity: 0.65 }}>// {subtitle}</span>}
-          {stepObjective && (
-            <span style={{ color: 'var(--color-terminal-amber)', fontWeight: 600, marginLeft: '0.4rem' }}>
-              [{stepObjective}]
-            </span>
-          )}
-        </div>
-
-        {onToggleZoom && (
-          <button
-            type="button"
-            className="hud-btn"
-            onClick={() => {
-              sound.playKeyClick();
-              onToggleZoom();
-            }}
-          >
-            {isZoomed ? '🔍 STEP BACK (WIDE)' : '🔎 INSPECT CLOSE-UP'}
-          </button>
         )}
       </div>
 

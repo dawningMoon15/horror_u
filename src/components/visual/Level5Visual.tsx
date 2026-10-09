@@ -245,133 +245,235 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
         hotspots={hotspots}
         isZoomed={inspectMode !== 'none'}
         onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'waveform' : 'none')}
-      >
-        {/* ─── 3D First-Person Room Perspective Composition ─────────────── */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-            perspective: '900px',
-            transformStyle: 'preserve-3d',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 12,
-          }}
-          aria-hidden="true"
-        >
-          {/* Main 3D Camera Rig */}
+        hideDefaultBgImage={true}
+        custom3DScene={
           <div
             style={{
-              position: 'relative',
-              width: '100vw',
-              height: '100vh',
+              position: 'absolute',
+              inset: 0,
+              perspective: '1000px',
               transformStyle: 'preserve-3d',
-              transition: isDragging ? 'none' : 'transform 0.15s ease-out',
-              transform: `rotateX(${camera.pitch}deg) rotateY(${camera.yaw}deg) translateZ(${camera.posZ}px)`,
+              overflow: 'hidden',
+              background: '#000000',
             }}
           >
-            {/* Overhead Roof / Ceiling Conduits Panel */}
+            {/* 3D Camera Rig: Moves with WASD and rotates with mouse/keys */}
             <div
               style={{
                 position: 'absolute',
-                top: '-15%',
-                left: '10%',
-                right: '10%',
-                height: '35%',
-                background: 'linear-gradient(to bottom, rgba(5, 5, 5, 0.95), transparent)',
-                transform: 'rotateX(-60deg) translateY(-100px)',
-                borderBottom: '1px solid rgba(217, 4, 41, 0.3)',
-                boxShadow: '0 0 40px rgba(217, 4, 41, 0.2) inset',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                paddingTop: '1rem',
+                inset: 0,
+                transformStyle: 'preserve-3d',
+                transformOrigin: 'center center',
+                transition: isDragging ? 'none' : 'transform 0.18s cubic-bezier(0.2, 0, 0.2, 1)',
+                transform: `perspective(1000px) translateZ(${camera.posZ}px) rotateX(${camera.pitch}deg) rotateY(${camera.yaw}deg)`,
               }}
             >
-              <span style={{ fontSize: '0.75rem', color: 'rgba(255, 80, 80, 0.8)', letterSpacing: '0.15em' }}>
-                [ROOF CONDUIT OVERHEAD CABLE TRAY // SIREN BEACON]
-              </span>
-            </div>
-
-            {/* Left Wall: Memory Bank Indicator Layer */}
-            <div
-              style={{
-                position: 'absolute',
-                left: '-5%',
-                top: '20%',
-                bottom: '20%',
-                width: '30%',
-                background: 'linear-gradient(to right, rgba(0, 30, 20, 0.8), transparent)',
-                transform: 'rotateY(55deg) translateZ(50px)',
-                borderRight: '1px solid rgba(0, 255, 136, 0.3)',
-                padding: '1.5rem',
-                color: 'var(--color-phosphor-green)',
-                fontFamily: 'var(--font-mono)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
-            >
-              <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>◄ MEMORY SUBSYSTEM</div>
-              <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>TAPE REEL RACKS</div>
-              <div style={{ fontSize: '0.65rem', marginTop: '0.5rem', color: subsystems.memory ? '#00ff88' : '#ff4444' }}>
-                STATUS: {subsystems.memory ? 'ACTIVE RECORDING' : 'DISCONNECTED'}
+              {/* 1. Center Core Mainframe Wall */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  transform: 'translateZ(0px)',
+                  transformStyle: 'preserve-3d',
+                }}
+              >
+                <img
+                  src="/assets/level5_core.jpg"
+                  alt="Core Supercomputer Terminal"
+                  style={{
+                    width: '100vw',
+                    height: '100vh',
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
+                />
               </div>
-            </div>
 
-            {/* Right Wall: Command Breakers Indicator Layer */}
-            <div
-              style={{
-                position: 'absolute',
-                right: '-5%',
-                top: '20%',
-                bottom: '20%',
-                width: '30%',
-                background: 'linear-gradient(to left, rgba(30, 10, 10, 0.8), transparent)',
-                transform: 'rotateY(-55deg) translateZ(50px)',
-                borderLeft: '1px solid rgba(217, 4, 41, 0.3)',
-                padding: '1.5rem',
-                color: 'var(--color-blood-bright)',
-                fontFamily: 'var(--font-mono)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'flex-end',
-              }}
-            >
-              <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>COMMAND BREAKER ►</div>
-              <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>KNIFE SWITCH BUS</div>
-              <div style={{ fontSize: '0.65rem', marginTop: '0.5rem', color: subsystems.command ? '#ffaa00' : '#444444' }}>
-                STATUS: {subsystems.command ? 'ENFORCED' : 'OFFLINE'}
+              {/* 2. Left Wall: Memory Bank Racks */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  width: '100vw',
+                  transformOrigin: 'left center',
+                  transform: 'rotateY(75deg) translateX(-10vw)',
+                  background: '#020704',
+                  overflow: 'hidden',
+                }}
+                onClick={() => {
+                  sound.playKeyClick();
+                  setInspectMode('memory');
+                }}
+                title="Click to inspect Memory Subsystem"
+              >
+                <img
+                  src="/assets/level5_left.jpg"
+                  alt="Memory Subsystem Tape Banks"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    filter: 'brightness(0.92)',
+                    cursor: 'pointer',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '22%',
+                    left: '12%',
+                    background: 'rgba(2, 20, 10, 0.88)',
+                    border: '1px solid #00ff88',
+                    padding: '0.4rem 0.9rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.78rem',
+                    color: '#00ff88',
+                    letterSpacing: '0.1em',
+                    boxShadow: '0 0 15px rgba(0, 255, 136, 0.3)',
+                  }}
+                >
+                  ◄ MEMORY SUBSYSTEM [CLICK TO OPEN]
+                </div>
               </div>
-            </div>
 
-            {/* Bottom Floor Grating Panel */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '-15%',
-                left: '10%',
-                right: '10%',
-                height: '35%',
-                background: 'linear-gradient(to top, rgba(2, 2, 2, 0.95), transparent)',
-                transform: 'rotateX(60deg) translateY(100px)',
-                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-end',
-                paddingBottom: '1rem',
-              }}
-            >
-              <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', letterSpacing: '0.12em' }}>
-                [METAL GRATE FLOOR // CONDUIT ABYSS]
-              </span>
+              {/* 3. Right Wall: Command Breakers */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  width: '100vw',
+                  transformOrigin: 'right center',
+                  transform: 'rotateY(-75deg) translateX(10vw)',
+                  background: '#070302',
+                  overflow: 'hidden',
+                }}
+                onClick={() => {
+                  sound.playKeyClick();
+                  setInspectMode('command');
+                }}
+                title="Click to inspect Command Breakers"
+              >
+                <img
+                  src="/assets/level5_right.jpg"
+                  alt="Command Breakers Panel"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    filter: 'brightness(0.92)',
+                    cursor: 'pointer',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '22%',
+                    right: '12%',
+                    background: 'rgba(25, 5, 2, 0.88)',
+                    border: '1px solid #ff4444',
+                    padding: '0.4rem 0.9rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.78rem',
+                    color: '#ff4444',
+                    letterSpacing: '0.1em',
+                    boxShadow: '0 0 15px rgba(255, 68, 68, 0.3)',
+                  }}
+                >
+                  COMMAND BREAKER BUS ► [CLICK TO OPEN]
+                </div>
+              </div>
+
+              {/* 4. Roof: Overhead Conduits & Siren */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '100vh',
+                  transformOrigin: 'center top',
+                  transform: 'rotateX(-75deg) translateY(-10vh)',
+                  overflow: 'hidden',
+                }}
+              >
+                <img
+                  src="/assets/level5_roof.jpg"
+                  alt="Overhead Roof Conduits"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    filter: 'brightness(0.85)',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '12%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(20, 2, 2, 0.85)',
+                    border: '1px solid #ff3344',
+                    padding: '0.3rem 0.75rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.72rem',
+                    color: '#ff5566',
+                    letterSpacing: '0.15em',
+                  }}
+                >
+                  ▲ OVERHEAD CONDUIT TRAY // ALARM BEACON
+                </div>
+              </div>
+
+              {/* 5. Floor: Steel Grate Trench */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: '100vh',
+                  transformOrigin: 'center bottom',
+                  transform: 'rotateX(75deg) translateY(10vh)',
+                  overflow: 'hidden',
+                }}
+              >
+                <img
+                  src="/assets/level5_floor.jpg"
+                  alt="Steel Grate Floor"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    filter: 'brightness(0.85)',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '12%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(5, 5, 5, 0.85)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    padding: '0.3rem 0.75rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.72rem',
+                    color: '#aaaaaa',
+                    letterSpacing: '0.12em',
+                  }}
+                >
+                  ▼ SUB-MAINFRAME TRENCH // CONDUIT ABYSS
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
+        }
+      >
         {/* ─── First-Person WASD Navigation HUD Dock (Over Image) ────────── */}
         <div
           style={{
@@ -386,7 +488,7 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
             zIndex: 40,
             display: 'flex',
             alignItems: 'center',
-            gap: '1rem',
+            gap: '0.85rem',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.78rem',
             color: '#ffffff',
@@ -406,16 +508,22 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
             <button
               type="button"
               className="hud-btn"
-              onClick={() => setCamera((c) => ({ ...c, posZ: Math.min(180, c.posZ + 35) }))}
+              onClick={() => {
+                sound.playDialClick();
+                setCamera((c) => ({ ...c, posZ: Math.min(220, c.posZ + 35) }));
+              }}
               title="Walk forward towards the central core"
               style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
             >
-              [W] FORWARD
+              [W] FWD
             </button>
             <button
               type="button"
               className="hud-btn"
-              onClick={() => setCamera((c) => ({ ...c, posZ: Math.max(-50, c.posZ - 35) }))}
+              onClick={() => {
+                sound.playDialClick();
+                setCamera((c) => ({ ...c, posZ: Math.max(-90, c.posZ - 35) }));
+              }}
               title="Step back / move away"
               style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
             >
@@ -424,7 +532,10 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
             <button
               type="button"
               className="hud-btn"
-              onClick={() => setCamera((c) => ({ ...c, yaw: Math.max(-45, c.yaw - 20) }))}
+              onClick={() => {
+                sound.playDialClick();
+                setCamera((c) => ({ ...c, yaw: Math.max(-50, c.yaw - 20) }));
+              }}
               title="Turn camera left towards memory banks"
               style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
             >
@@ -433,11 +544,50 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({ onSolve }) => {
             <button
               type="button"
               className="hud-btn"
-              onClick={() => setCamera((c) => ({ ...c, yaw: Math.min(45, c.yaw + 20) }))}
+              onClick={() => {
+                sound.playDialClick();
+                setCamera((c) => ({ ...c, yaw: Math.min(50, c.yaw + 20) }));
+              }}
               title="Turn camera right towards command console"
               style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
             >
               [D] RIGHT
+            </button>
+            <button
+              type="button"
+              className="hud-btn"
+              onClick={() => {
+                sound.playDialClick();
+                setCamera((c) => ({ ...c, pitch: Math.max(-28, c.pitch - 15) }));
+              }}
+              title="Look up at roof conduits"
+              style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+            >
+              [▲] ROOF
+            </button>
+            <button
+              type="button"
+              className="hud-btn"
+              onClick={() => {
+                sound.playDialClick();
+                setCamera((c) => ({ ...c, pitch: Math.min(28, c.pitch + 15) }));
+              }}
+              title="Look down at floor grating"
+              style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+            >
+              [▼] FLOOR
+            </button>
+            <button
+              type="button"
+              className="hud-btn"
+              onClick={() => {
+                sound.playDialClick();
+                setCamera({ posZ: 0, yaw: 0, pitch: 0 });
+              }}
+              title="Reset first-person camera to center"
+              style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', color: 'var(--color-phosphor-green)' }}
+            >
+              [●] CENTER
             </button>
           </div>
         </div>
