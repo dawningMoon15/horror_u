@@ -2,19 +2,73 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>THE CONTEXT — Personalised Psychological Horror Escape Room</title>
+    
+    <!-- Core SEO Meta Tags -->
     <meta
       name="description"
-      content="A browser-based psychological horror escape room personalised by your chosen AI assistant. Zero backend, zero telemetry, machine-enforced privacy."
+      content="A retro-computing analog psychological horror escape room running fully client-side. 5 rooms, 15 sequential mysteries, zero telemetry, and machine-enforced privacy."
     />
+    <meta
+      name="keywords"
+      content="psychological horror, escape room, analog horror, retro computer game, webgl horror, interactive fiction, three.js horror, puzzle game"
+    />
+    <meta name="author" content="THE CONTEXT Team" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://thecontext.vercel.app/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#05070a" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://thecontext.vercel.app/" />
+    <meta property="og:title" content="THE CONTEXT — Analog Psychological Horror Escape Room" />
+    <meta
+      property="og:description"
+      content="A retro-computing psychological horror escape room running fully client-side. 5 rooms, 15 sequential mysteries, zero telemetry."
+    />
+    <meta property="og:image" content="https://thecontext.vercel.app/assets/level1_terminal.jpg" />
+    <meta property="og:image:alt" content="THE CONTEXT Terminal Mainframe" />
+    <meta property="og:site_name" content="THE CONTEXT" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://thecontext.vercel.app/" />
+    <meta name="twitter:title" content="THE CONTEXT — Analog Psychological Horror Escape Room" />
+    <meta
+      name="twitter:description"
+      content="A retro-computing psychological horror escape room running fully client-side. 5 rooms, 15 sequential mysteries, zero telemetry."
+    />
+    <meta name="twitter:image" content="https://thecontext.vercel.app/assets/level1_terminal.jpg" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@600;700;800&family=Manrope:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Structured Data (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "THE CONTEXT",
+        "description": "A retro-computing psychological horror escape room running fully client-side. 5 rooms, 15 sequential mysteries, zero telemetry.",
+        "genre": ["Psychological Horror", "Escape Room", "Analog Horror", "Puzzle"],
+        "playMode": "SinglePlayer",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "url": "https://thecontext.vercel.app/",
+        "author": {
+          "@type": "Organization",
+          "name": "THE CONTEXT Project"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

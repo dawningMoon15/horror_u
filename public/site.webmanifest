@@ -1,0 +1,16 @@
+{
+  "name": "THE CONTEXT — Psychological Horror Escape Room",
+  "short_name": "THE CONTEXT",
+  "description": "A retro-computing analog psychological horror escape room running entirely in the browser.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "background_color": "#020406",
+  "theme_color": "#05070a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
