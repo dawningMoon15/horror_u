@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CameraViewport, type Hotspot, type SpotlightCoords } from './CameraViewport';
+import { CameraViewport, type Hotspot } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 
 interface Level3VisualProps {
@@ -70,17 +70,10 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
     },
   ];
 
-  // The room is pitch black except for the spotlight centered on the current sequential clue
-  const spotlightMap: Record<number, SpotlightCoords> = {
-    1: { xPercent: 32, yPercent: 49, radius: 155 }, // Deadbolts
-    2: { xPercent: 50, yPercent: 58, radius: 150 }, // Mechanical dial
-    3: { xPercent: 50, yPercent: 44, radius: 155 }, // Keypad
-  };
-
   const stepObjectives: Record<number, string> = {
-    1: 'PHASE 1/3: INSPECT DEADBOLT SYSTEM',
-    2: 'PHASE 2/3: INSPECT SAFE TUMBLER DIAL',
-    3: 'PHASE 3/3: INPUT 5-DIGIT CIPHER ON KEYPAD',
+    1: 'PHASE 1/3: INSPECT DEADBOLT SYSTEM (30s)',
+    2: 'PHASE 2/3: INSPECT SAFE TUMBLER DIAL (15s)',
+    3: 'PHASE 3/3: INPUT 5-DIGIT CIPHER ON KEYPAD (10s)',
   };
 
   return (
@@ -88,10 +81,10 @@ export const Level3Visual: React.FC<Level3VisualProps> = ({ onSolve, unlocked })
       imageSrc="/assets/level3_vault.jpg"
       imageAlt="Massive heavy steel vault door with keypad and yellow hazard stripes"
       title="ROOM 03 // THE VAULT EXIT"
-      subtitle="TACTICAL SPOTLIGHT SEARCH"
+      subtitle="ANALOG FLASHLIGHT EXPLORATION"
       stepObjective={stepObjectives[step]}
+      currentStep={step}
       hotspots={hotspots}
-      spotlightCoords={spotlightMap[step]}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'keypad' : 'none')}
     >

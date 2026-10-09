@@ -163,6 +163,7 @@ export default function App() {
       {/* CRT Scanline & Atmosphere Layers */}
       {scanlinesEnabled && <div className="crt-overlay crt-scanline-drift" aria-hidden="true" />}
       <div className="crt-vignette" aria-hidden="true" />
+      <div className="vhs-tracking-jitter" aria-hidden="true" />
 
       {/* Main Terminal Frame */}
       <div className="app-container">

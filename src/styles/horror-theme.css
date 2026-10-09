@@ -69,6 +69,26 @@ body::before {
   z-index: 998;
 }
 
+/* Analog Horror VHS Tracking Bar */
+.vhs-tracking-jitter {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background: repeating-linear-gradient(90deg, #fff 0, #fff 3px, transparent 3px, transparent 6px);
+  opacity: 0.16;
+  pointer-events: none;
+  z-index: 997;
+  animation: vhsTrackJitter 0.2s steps(2) infinite;
+}
+
+@keyframes vhsTrackJitter {
+  0% { transform: translateY(0); opacity: 0.12; }
+  50% { transform: translateY(-3px); opacity: 0.28; }
+  100% { transform: translateY(0); opacity: 0.12; }
+}
+
 /* ─── App Shell & Layout ─────────────────────────────────────────────────── */
 
 .app-container {

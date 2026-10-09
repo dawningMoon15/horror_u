@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CameraViewport, type Hotspot, type SpotlightCoords } from './CameraViewport';
+import { CameraViewport, type Hotspot } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 
 interface Level1VisualProps {
@@ -61,17 +61,10 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
     },
   ];
 
-  // The room is pitch black except for the spotlight centered on the current sequential clue
-  const spotlightMap: Record<number, SpotlightCoords> = {
-    1: { xPercent: 50, yPercent: 28, radius: 155 }, // Monitor
-    2: { xPercent: 48, yPercent: 62, radius: 150 }, // Carved wood
-    3: { xPercent: 50, yPercent: 78, radius: 145 }, // Padlock & drawer
-  };
-
   const stepObjectives: Record<number, string> = {
-    1: 'PHASE 1/3: INSPECT ILLUMINATED MONITOR',
-    2: 'PHASE 2/3: EXAMINE CARVED RUNES ON DESK',
-    3: 'PHASE 3/3: CRACK PADLOCK TUMBLER',
+    1: 'PHASE 1/3: INSPECT ILLUMINATED MONITOR (30s)',
+    2: 'PHASE 2/3: EXAMINE CARVED RUNES ON DESK (15s)',
+    3: 'PHASE 3/3: CRACK PADLOCK TUMBLER (10s)',
   };
 
   return (
@@ -79,10 +72,10 @@ export const Level1Visual: React.FC<Level1VisualProps> = ({ onSolve, unlocked })
       imageSrc="/assets/level1_desk.jpg"
       imageAlt="Dark 1980s control room desk with locked drawer and green monitor"
       title="ROOM 01 // ARCHIVE CONTROL DESK"
-      subtitle="TACTICAL SPOTLIGHT SEARCH"
+      subtitle="ANALOG FLASHLIGHT EXPLORATION"
       stepObjective={stepObjectives[step]}
+      currentStep={step}
       hotspots={hotspots}
-      spotlightCoords={spotlightMap[step]}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'lock' : 'none')}
     >

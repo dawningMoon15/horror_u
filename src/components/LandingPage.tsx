@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { sound } from '../lib/soundEffects';
 
 interface LandingPageProps {
@@ -11,6 +11,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onStartGeneric,
 }) => {
   const [showDataPolicy, setShowDataPolicy] = useState(false);
+
+  // Play Creepy Old Music Box on homescreen
+  useEffect(() => {
+    sound.playHomescreenMusic();
+  }, []);
 
   const handlePersonalised = () => {
     sound.playKeyClick();

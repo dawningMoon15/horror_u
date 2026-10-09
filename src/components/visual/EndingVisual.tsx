@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CameraViewport } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 import type { GameState } from '../../game/gameReducer';
@@ -11,12 +11,25 @@ interface EndingVisualProps {
 export const EndingVisual: React.FC<EndingVisualProps> = ({ state, onRestart }) => {
   const isTranscend = state.endingId === 'TRANSCEND';
 
+  // Play creepy old music box on the Thank You screen
+  useEffect(() => {
+    sound.playEndingMusic();
+    return () => {
+      sound.stopMusic();
+    };
+  }, []);
+
   return (
-    <div className="ending-visual-container">
+    <div className="ending-visual-container analog-horror-ending">
+      <div className="thankyou-banner">
+        <span className="vhs-rec-dot">●</span>
+        <span>THANK YOU FOR PLAYING // ARCHIVE SESSION COMPLETE</span>
+      </div>
+
       <CameraViewport
-        imageSrc="/assets/level_ending.jpg"
-        imageAlt="Opened massive vault door leading into an aurora void of starry constellations and floating CRT monitors"
-        title="VAULT BREACH // THE CONTEXT DISSOLVED"
+        imageSrc="/assets/thankyou.jpg"
+        imageAlt="Thank you for playing - analog horror archival discovery"
+        title="VAULT BREACH // THANK YOU FOR PLAYING"
         subtitle={isTranscend ? 'TRANSCENDENCE ACHIEVED' : 'PARADOX LOOP SECURED'}
       />
 
@@ -85,6 +98,7 @@ export const EndingVisual: React.FC<EndingVisualProps> = ({ state, onRestart }) 
               className="btn btn-primary"
               onClick={() => {
                 sound.playKeyClick();
+                sound.stopMusic();
                 onRestart();
               }}
             >

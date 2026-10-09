@@ -29,6 +29,13 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
     state.config?.visualVariant
   );
 
+  // Start Dark Tension Rising music during gameplay
+  useEffect(() => {
+    if (!isEnding) {
+      sound.playGameMusic();
+    }
+  }, [isEnding]);
+
   // Auto-narrate room introduction on level entry
   useEffect(() => {
     if (isEnding) return;

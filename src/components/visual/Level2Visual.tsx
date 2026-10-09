@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CameraViewport, type Hotspot, type SpotlightCoords } from './CameraViewport';
+import { CameraViewport, type Hotspot } from './CameraViewport';
 import { sound } from '../../lib/soundEffects';
 
 interface Level2VisualProps {
@@ -64,17 +64,10 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
     },
   ];
 
-  // The room is pitch black except for the spotlight centered on the current sequential clue
-  const spotlightMap: Record<number, SpotlightCoords> = {
-    1: { xPercent: 22, yPercent: 52, radius: 155 }, // CCTV
-    2: { xPercent: 55, yPercent: 35, radius: 150 }, // Cabinet drawers
-    3: { xPercent: 65, yPercent: 68, radius: 160 }, // Dossiers on table
-  };
-
   const stepObjectives: Record<number, string> = {
-    1: 'PHASE 1/3: INSPECT CCTV SURVEILLANCE FEED',
-    2: 'PHASE 2/3: LOCATE CABINET RECORDS',
-    3: 'PHASE 3/3: UN-REDACT & VERIFY YEAR',
+    1: 'PHASE 1/3: INSPECT CCTV SURVEILLANCE FEED (30s)',
+    2: 'PHASE 2/3: LOCATE CABINET RECORDS (15s)',
+    3: 'PHASE 3/3: UN-REDACT & VERIFY YEAR (10s)',
   };
 
   return (
@@ -82,10 +75,10 @@ export const Level2Visual: React.FC<Level2VisualProps> = ({ onSolve, unlocked })
       imageSrc="/assets/level2_records.jpg"
       imageAlt="Classified underground records room with dossiers and filing cabinets"
       title="ROOM 02 // RECORDS ARCHIVE"
-      subtitle="TACTICAL SPOTLIGHT SEARCH"
+      subtitle="ANALOG FLASHLIGHT EXPLORATION"
       stepObjective={stepObjectives[step]}
+      currentStep={step}
       hotspots={hotspots}
-      spotlightCoords={spotlightMap[step]}
       isZoomed={inspectMode !== 'none'}
       onToggleZoom={() => setInspectMode(inspectMode === 'none' ? 'dossiers' : 'none')}
     >

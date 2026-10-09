@@ -496,3 +496,234 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* ─── Analog Horror VHS OSD Elements ─────────────────────────────────────── */
+
+.analog-horror-frame {
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.98), inset 0 0 100px rgba(0, 0, 0, 0.95);
+}
+
+.vhs-osd-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  pointer-events: none;
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.vhs-osd-top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.vhs-rec-tag {
+  color: #ff3344;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-shadow: 0 0 8px rgba(255, 51, 68, 0.8);
+}
+
+.vhs-rec-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff3344;
+  display: inline-block;
+  animation: vhsRecBlink 1.2s infinite ease-in-out;
+}
+
+@keyframes vhsRecBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+
+.vhs-tracking-code {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.vhs-timer-tag {
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.35rem 0.75rem;
+  border-radius: 2px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.vhs-timer-tag.critical {
+  color: #ff2a2a;
+  border-color: #ff2a2a;
+  background: rgba(40, 4, 6, 0.88);
+  animation: timerCriticalShake 0.4s infinite ease-in-out;
+  text-shadow: 0 0 10px #ff0000, 2px 0 rgba(0, 255, 255, 0.6);
+}
+
+@keyframes timerCriticalShake {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* ─── Jumpscare Video Overlay ────────────────────────────────────────────── */
+
+.jumpscare-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.jumpscare-video {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  animation: jumpscareStrobe 0.12s infinite;
+}
+
+@keyframes jumpscareStrobe {
+  0% { filter: brightness(1) contrast(1.1); }
+  50% { filter: brightness(1.25) contrast(1.3) hue-rotate(15deg); }
+  100% { filter: brightness(1) contrast(1.1); }
+}
+
+.jumpscare-skip-btn {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  padding: 0.45rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+.jumpscare-skip-btn:hover {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* ─── Analog Horror Game Over Screen ─────────────────────────────────────── */
+
+.analog-gameover-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9999;
+  background: #060204;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.vhs-static-glitch-layer {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.3) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+  animation: scanlineDrift 6s linear infinite;
+  z-index: 1;
+}
+
+.gameover-content-card {
+  position: relative;
+  z-index: 2;
+  background: rgba(14, 5, 8, 0.95);
+  border: 2px solid #ff2a2a;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 50px rgba(255, 42, 42, 0.4), inset 0 0 30px rgba(0, 0, 0, 0.9);
+  max-width: 580px;
+  width: 100%;
+  padding: 2.25rem;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.gameover-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #ff3344;
+  letter-spacing: 0.12em;
+  margin-bottom: 1rem;
+}
+
+.gameover-title {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  text-shadow: 2px 0 #00ffff, -2px 0 #ff0000;
+  margin: 0 0 1rem 0;
+  animation: glitchText 1.5s infinite;
+}
+
+@keyframes glitchText {
+  0%, 100% { text-shadow: 2px 0 #00ffff, -2px 0 #ff0000; }
+  33% { text-shadow: -2px 0 #00ffff, 2px 0 #ff0000; }
+  66% { text-shadow: 3px -1px #00ffff, -3px 1px #ff0000; }
+}
+
+.gameover-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 2rem;
+}
+
+.gameover-btn-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Thank You For Playing Banner ───────────────────────────────────────── */
+
+.thankyou-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid var(--border-medium);
+  padding: 0.65rem 1.25rem;
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #ffffff;
+  letter-spacing: 0.1em;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+}
+
+
