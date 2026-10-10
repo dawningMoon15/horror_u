@@ -160,6 +160,22 @@ horror_u/
 
 ---
 
+## 🙏 Credits & Attributions
+
+This project incorporates curated audio and video media for non-commercial educational, demonstration, and game design portfolio purposes:
+
+- **Literary Source & Narrative Concept**:
+  - Based on the seminal science fiction short story and game **"I Have No Mouth, and I Must Scream"** by **Harlan Ellison** (1967).
+  - The supercomputer sentience themes, hatred monologue, and philosophical construct of inescapable machine containment are directly inspired by Harlan Ellison's Allied Mastercomputer (A.M.).
+- **Voice Performance & Monologue Audio**:
+  - A.M. speech audio adapted from animated adaptations on **YouTube** (Dekkow — *"I Have No Mouth And I Must Scream - A.M. speech (ANIMATED) 3D"*).
+- **Music & Ambient Soundtracks**:
+  - Analog atmospheric music tracks (*Creepy Old Music Box*, *Dark Tension Rising*) sourced from creative creators on **YouTube**.
+- **Jumpscare Video Media**:
+  - Analog VHS jumpscare video clip sourced from **YouTube**.
+
+---
+
 ## 📜 Copyright & Terms of Use
 
 Copyright © 2026 Navya Sharma. All rights reserved.
@@ -168,4 +184,4 @@ This source code, game mechanics, visual assets, procedural audio engineering, a
 
 - Unauthorized copying, modification, redistribution, or commercial use of this project in whole or in part is strictly prohibited without prior written consent from the author.
 - Viewing and interacting with this repository is permitted solely for academic review, demonstration, and personal portfolio evaluation.
-- Audio monologue excerpts belong to their respective copyright holders.
+- All third-party media, literary adaptations, and audio excerpts remain the intellectual property of their respective creators and copyright holders.
