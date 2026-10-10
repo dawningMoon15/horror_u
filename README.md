@@ -160,8 +160,12 @@ horror_u/
 
 ---
 
-## 📜 License
+## 📜 Copyright & Terms of Use
 
-Created for educational, demonstration, and game design portfolio purposes.
-All procedural audio and game logic are distributed under the [MIT License](LICENSE).
-Audio monologue excerpts belong to their respective copyright holders.
+Copyright © 2026 Navya Sharma. All rights reserved.
+
+This source code, game mechanics, visual assets, procedural audio engineering, and narrative design are the personal intellectual property of Navya Sharma.
+
+- Unauthorized copying, modification, redistribution, or commercial use of this project in whole or in part is strictly prohibited without prior written consent from the author.
+- Viewing and interacting with this repository is permitted solely for academic review, demonstration, and personal portfolio evaluation.
+- Audio monologue excerpts belong to their respective copyright holders.
