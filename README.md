@@ -178,9 +178,9 @@ This project incorporates curated audio and video media for non-commercial educa
 
 ## 📜 Copyright & Terms of Use
 
-Copyright © 2026 Navya Sharma. All rights reserved.
+Copyright © 2026 dawningMoon_15. All rights reserved.
 
-This source code, game mechanics, visual assets, procedural audio engineering, and narrative design are the personal intellectual property of Navya Sharma.
+This source code, game mechanics, visual assets, procedural audio engineering, and narrative design are the personal intellectual property of dawningMoon_15.
 
 - Unauthorized copying, modification, redistribution, or commercial use of this project in whole or in part is strictly prohibited without prior written consent from the author.
 - Viewing and interacting with this repository is permitted solely for academic review, demonstration, and personal portfolio evaluation.
