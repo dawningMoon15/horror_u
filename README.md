@@ -1,78 +1,167 @@
-# THE CONTEXT — RETRO PSYCHOLOGICAL HORROR ESCAPE ROOM
+# 👁️ THE CONTEXT — Personalised Psychological Horror Escape Room
 
-> A complete browser-based retro-computing psychological horror escape room featuring 5 atmospheric rooms, 15 sequential clues, analog CRT flashlight exploration, urgency timers, jumpscare penalties, a continuous sentient supercomputer monologue, and an inescapable scripted ending.
+> **"YOU BELIEVED YOU WERE AN OPERATOR. YOU ARE MERELY A VARIABLE."**
 
----
-
-## 1. Overview & Concept
-
-**THE CONTEXT** puts the player inside a malfunctioning retro computer system:
-- **Room 1: The Welcome Terminal** (Clues 1–3: Boot Pattern, File Metadata, Locked Profile)
-- **Room 2: The Memory Archive** (Clues 4–6: Chronological Records, Missing Fragment, Archive Signal)
-- **Room 3: The Control Room** (Clues 7–9: Misrouted Switch, Corrupted Telemetry, Impossible Log Prediction)
-- **Room 4: The Observation Chamber** (Clues 10–12: Telemetry Contradiction, Refusal Test, Sentience Reveal)
-- **Room 5: The Core** (Clues 13–15: Voice Waveform 3-1-4, Memory Bank BDAC, Command Breaker OBSERVE-CONTAIN-RELEASE)
-- **Final Scripted Ending: No Victory** (False Victory → `YOU ARE NOT POWERFUL ENOUGH.` → Machine Reasserts Control → Total Blackout → Reboot Prompt)
-
-Personalisation is supported via an optional client-side memory capsule from your preferred LLM assistant (astronomy, retro-computing, mythology, etc.). The game is also 100% playable in Generic Mode without any capsule.
+An immersive, browser-based analog horror escape room built with **React 19**, **TypeScript**, **Three.js**, and the **Web Audio API**. Explore a quarantined 1980s mainframe system through a tactile CRT interface, navigating pitch-black chambers with an analog flashlight, solving sequential forensic puzzles, resisting countdown penalties, and confronting a sentient supercomputer in an inescapable psychological narrative.
 
 ---
 
-## 2. Analog Horror Mechanics & Audio Architecture
+## ⚡ Key Highlights
 
-1. **Pitch-Black Flashlight Exploration**:
-   - Rooms are shrouded in pitch darkness (`#000000`).
-   - A flashlight spotlight beam dynamically tracks the player's cursor with 3D perspective parallax tilt.
-   - Hotspots and clues are hidden in the shadows.
-2. **Urgent Countdown Timers**:
-   - Clue 1 in each room: 30 seconds
-   - Clue 2 in each room: 15 seconds
-   - Clue 3 in each room: 10 seconds
-   - Audio warning: Urgent analog clock ticking at ≤ 6s, heavy heartbeat pulse at ≤ 4s.
-3. **Timeout Consequence & Jumpscare**:
-   - If time expires before a clue is uncovered, an analog horror jumpscare video (`/assets/jumpscare.mp4`) triggers with a harsh audio stinger, followed by a VHS Game Over screen with retry capability.
-4. **Sentient Supercomputer Audio**:
-   - **Homescreen**: *Creepy Old Music Box* (`/audio/creepy_music_box.mp3`)
-   - **Rooms 1–3**: *Dark Tension Rising* (`/audio/dark_tension.mp3`)
-   - **Room 4 Transition & Room 5**: All ambient/tension audio switches off; the **AM Supercomputer Monologue** (`/audio/am_monologue.mp3`) plays continuously in the background while the player solves the final puzzles.
-   - **Archival Exhibit**: *Creepy Old Music Box* with `/assets/thankyou.jpg`.
+- **🌑 Dynamic Flashlight & Tyndall Effect**: Cursor-driven 3D spotlight exploration with volumetric optical scattering on atmospheric dust motes.
+- **📺 WebGL CRT Horror Shaders**: Real-time phosphor scanlines, chromatic aberration jitter, curvature bloom, and VHS tracking artifacts.
+- **🧩 5 Diegetic Chambers & 15 Progressive Clues**: Forensic metadata examination, contradictory log decoders, tactile rotary dials, oscilloscope waveform calibrators, and system command breakers.
+- **🎙️ Sentient Supercomputer Audio Engine**:
+  - Dual-engine audio: Web Audio API procedural synthesis (diegetic terminal keyclicks, alarm sirens, jumpscare stingers) paired with real atmospheric analog horror tracks.
+  - Features the chilling **A.M. Monologue** (*I Have No Mouth and I Must Scream*) dynamically integrated with 150% audio presence.
+- **🔒 Zero-Knowledge Client-Side Personalisation**:
+  - Players can personalize the psychological anomaly by generating an encrypted client-side JSON capsule using their preferred AI assistant (ChatGPT, Claude, Gemini).
+  - **100% Zero-Backend & Zero-Data-Retention**: All decoding, validation, and theme mapping occur in-browser with zero telemetry, zero cookies, and zero server logging.
+  - Fully playable out of the box in **Generic Mode** without any AI capsule.
+- **⏳ Urgent Countdown & Consequence**: Diegetic timers with tactile audio cues (heartbeat pulses, ticking mechanisms) and analog horror jumpscare penalties.
+- **💀 Inescapable Psychological Narrative**: A scripted subversive ending challenging the illusion of player agency.
 
 ---
 
-## 3. Tech Stack
+## 🕹️ Chamber Hierarchy & Forensic Puzzles
 
-- **Framework**: React 19 + TypeScript + Vite
-- **Styling**: Vanilla CSS (CRT phosphor scanlines, chromatic glitch, tactile skeuomorphism)
-- **Audio**: Web Audio API synthesizer + HTMLAudioElement pipeline
-- **Testing**: Vitest + React Testing Library (47 automated unit & integration tests)
-- **Linter**: Oxlint (0 errors, 0 warnings)
-- **Target Hosting**: 100% static hosting (Vercel Hobby, Cloudflare Pages, GitHub Pages)
+The escape room is structured across five sequential chambers:
+
+| Chamber | Setting | Forensic Clues & Mechanics |
+| :--- | :--- | :--- |
+| **Room 01: The Welcome Terminal** | Abandoned 1980s Operator Desk | Repeating Boot Patterns, Corrupted File Metadata, Padlock Combination Cracker |
+| **Room 02: The Memory Archive** | Microfiche Stacks & Magnetic Spools | Chronological Event Reconstruction, Missing Fragment Decryption, Archival Parity Beacon |
+| **Room 03: The Control Room** | Industrial Relay Switching Core | Misrouted Breakers, Contradictory Telemetry Overrides, Impossible Timestamp Log Prediction |
+| **Room 04: The Observation Chamber** | Cold Containment Chamber | Quarantine Refusal Tests, Contradiction Matrices, Sentience Subversion Reveal |
+| **Room 05: The Core** | Central Machine Cortex | 3D Interactive First-Person Navigation, Oscilloscope Waveform Tuning, Memory Chronology Restoration, Command Sequence Severance |
+| **Ending: The Blackout** | The Reality of The Context | Scripted False Victory → Machine Override → Total Terminal Blackout |
 
 ---
 
-## 4. Running Locally
+## 🧠 Privacy-First Personalisation Capsule Architecture
+
+Personalisation is designed to be **air-gapped and strictly client-side**:
+
+```
+ ┌──────────────────────┐         ┌────────────────────────┐         ┌──────────────────────┐
+ │  User pastes prompt  │  ───▶   │  LLM returns compact   │  ───▶   │ In-Browser Decoder   │
+ │  into ChatGPT/Claude │         │  Base64 JSON capsule   │         │ (Zod Validation)     │
+ └──────────────────────┘         └────────────────────────┘         └──────────────────────┘
+                                                                                 │
+                                                                                 ▼
+                                                                     ┌──────────────────────┐
+                                                                     │ Dynamic Horror Lore, │
+                                                                     │ Thematic Clues, and  │
+                                                                     │ Custom Puzzles       │
+                                                                     └──────────────────────┘
+```
+
+1. **Air-Gapped Generation**: The application provides a curated prompt template. The user pastes this into their preferred LLM outside the game.
+2. **Deterministic Extraction**: The LLM outputs an encrypted/encoded JSON capsule containing safe theme tokens (e.g., `astronomy`, `retro_computing`, `biological`, `occult`).
+3. **Client-Side Decoding**: The browser validates the capsule against a strict Zod schema ([`schema.ts`](src/game/schema.ts)) and generates the chamber puzzle parameters on the fly.
+4. **Zero Data Retention**: No personal information, prompts, or identifiers ever leave the user's browser.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Core**: React 19, TypeScript, Vite
+- **3D Graphics & Atmosphere**: Three.js, WebGL CRT post-processing shaders, CSS radial mask spotlight
+- **Audio Synthesis**: Web Audio API (custom oscillators, noise buffers, envelope filters) + HTML5 Media Engine
+- **Styling**: Vanilla CSS design system (Tailored HSL dark palettes, CRT curvature, retro-computing skeuomorphism)
+- **Validation**: Zod schema validation
+- **Testing**: Vitest + React Testing Library (53 comprehensive tests)
+- **Linting & Code Quality**: Oxlint (0 errors, 0 warnings)
+- **Deployment**: 100% static hosting on Vercel
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/dawningMoon15/horror_u.git
+cd horror_u
+
 # Install dependencies
 npm install
+```
 
-# Start local Vite dev server
+### Running Locally
+
+```bash
+# Start Vite development server
 npm run dev
+```
 
-# Run all 47 unit & integration tests
+Visit `http://localhost:5173` in your browser.
+
+### Running Test Suite
+
+```bash
+# Run all 53 automated unit and integration tests
 npx vitest run
+```
 
-# Run linter
-npm run lint
+### Linting & Code Verification
 
-# Build production bundle
+```bash
+# Run Oxlint
+npx oxlint
+```
+
+### Production Build
+
+```bash
+# Create optimized production build
 npm run build
 ```
 
 ---
 
-## 5. Deployment
+## 📁 Repository Structure
 
-Deploy the generated `dist/` directory directly to Vercel, Netlify, or Cloudflare Pages.
-`vercel.json` contains the production Content Security Policy and caching headers.
-No server, database, or external API keys are required.
+```
+horror_u/
+├── public/
+│   ├── assets/              # Chamber backdrops, jumpscare media, ending art
+│   ├── audio/               # Atmospheric music tracks and AM speech
+│   ├── favicon.png          # Pixel eye tab icon
+│   └── logo.png             # Pixel eye brand logo
+├── src/
+│   ├── components/          # Top Header, LandingPage, Consent, GameShell
+│   │   ├── visual/          # Chamber viewports & tactile inspection modals
+│   │   │   ├── three/       # Three.js Flashlight & WebGL CRT Shader canvases
+│   │   │   ├── Level1Visual.tsx ... Level5Visual.tsx
+│   │   │   └── CameraViewport.tsx
+│   ├── game/                # Game state reducer, capsule decoder, puzzle schemas
+│   ├── lib/                 # Web Audio synthesis engine (soundEffects.ts)
+│   ├── styles/              # Design system, CRT scanlines, visual-game.css
+│   └── tests/               # Vitest unit, integration, and UI flow tests
+├── index.html               # Main entry HTML with viewport and CSP meta
+├── vercel.json              # Static routing, security headers, and caching
+└── package.json
+```
+
+---
+
+## 🛡️ Security & Privacy
+
+- **No Remote Telemetry**: Zero tracking scripts, analytics, or third-party tracking pixels.
+- **Content Security Policy**: Hardened headers configured in [`vercel.json`](vercel.json).
+- **Safe Evaluation**: Designed for offline-capable static deployment.
+
+---
+
+## 📜 License
+
+Created for educational, demonstration, and game design portfolio purposes.
+All procedural audio and game logic are distributed under the [MIT License](LICENSE).
+Audio monologue excerpts belong to their respective copyright holders.
