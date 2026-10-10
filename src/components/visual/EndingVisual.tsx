@@ -7,42 +7,49 @@ interface EndingVisualProps {
   onRestart: () => void;
 }
 
-export const EndingVisual: React.FC<EndingVisualProps> = () => {
+export const EndingVisual: React.FC<EndingVisualProps> = ({ onRestart }) => {
   const [beat, setBeat] = useState<
-    'victory' | 'glitch' | 'not_strong_enough' | 'monologue_monolith' | 'blank_void' | 'eternal_end'
+    'victory' | 'glitch' | 'not_strong_enough' | 'monologue_monolith' | 'eternal_end'
   >('victory');
   const [typedChars, setTypedChars] = useState(0);
 
   const declarationText = 'YOU ARE NOT STRONG ENOUGH.';
 
+  const handleGameOver = () => {
+    sound.playKeyClick();
+    sound.stopEndingVesselMusic();
+    sound.stopAllAudio();
+    onRestart();
+  };
+
   useEffect(() => {
     // Room 5 music is paused while displaying initial false victory screen
     sound.pauseAmMonologue();
 
-    // ─── Beat 1 -> Glitch Transition ─────────────────────────────────────────
+    // ─── Beat 1 -> Glitch Transition (2.4s) ──────────────────────────────────
     const tGlitch = setTimeout(() => {
       sound.playGlitch();
       setBeat('glitch');
     }, 2400);
 
-    // ─── Beat 2: Not Strong Enough Display -> Resume Monologue from where it was cut off ───
+    // ─── Beat 2: Not Strong Enough Display (4.2s) ────────────────────────────
+    // At this point we begin the ending sequence: start Vessel track first at full audio (1.0) on loop
     const tMessage = setTimeout(() => {
       sound.playGlitch();
       setTypedChars(0);
       setBeat('not_strong_enough');
-      // Resumes Room 5 music exactly from the timestamp where it was paused
-      sound.resumeAmMonologue(() => {
-        handleMonologueConcluded();
-      });
+      sound.playEndingVesselMusic(1.0, true);
     }, 4200);
 
-    // ─── Beat 3: Monolith Vignettes in while Monologue Continues ─────────────
-    const tMonolith = setTimeout(() => {
+    // ─── Beat 3: Monolith Reveal & Monologue Resume (9.2s = 5s after Vessel starts)
+    // Reduce Vessel track to 75% volume and resume AM Monologue over it
+    const tResumeMonologue = setTimeout(() => {
+      sound.setEndingVesselVolume(0.75);
       setBeat('monologue_monolith');
       sound.resumeAmMonologue(() => {
         handleMonologueConcluded();
       });
-    }, 9500);
+    }, 9200);
 
     // Safety timeout in case audio is blocked or running in headless test
     const tSafetyBlank = setTimeout(() => {
@@ -50,15 +57,11 @@ export const EndingVisual: React.FC<EndingVisualProps> = () => {
     }, 235000);
 
     const handleMonologueConcluded = () => {
-      // ─── Beat 4: All audio concludes, dead silence & pitch-black screen ───
-      sound.stopAllAudio();
-      setBeat('blank_void');
-
-      // ─── Beat 5: Final State — AM Monolith with starting creepy music box ──
-      setTimeout(() => {
-        sound.playHomescreenMusic();
-        setBeat('eternal_end');
-      }, 4000);
+      // AM Monologue is concluded:
+      // Vessel track continues playing on loop at 75%.
+      // Homepage music is removed from the end completely.
+      // Transition to eternal ending state with interactive GAME OVER button.
+      setBeat('eternal_end');
     };
 
     const cleanupMonologueListener = sound.onMonologueEnded(() => {
@@ -68,9 +71,10 @@ export const EndingVisual: React.FC<EndingVisualProps> = () => {
     return () => {
       clearTimeout(tGlitch);
       clearTimeout(tMessage);
-      clearTimeout(tMonolith);
+      clearTimeout(tResumeMonologue);
       clearTimeout(tSafetyBlank);
       cleanupMonologueListener();
+      sound.stopEndingVesselMusic();
     };
   }, []);
 
@@ -236,20 +240,7 @@ export const EndingVisual: React.FC<EndingVisualProps> = () => {
         </div>
       )}
 
-      {/* ─── Beat 4: Pitch Black Void (All Audio Terminated, Dead Silence) ─── */}
-      {beat === 'blank_void' && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: '#000000',
-            zIndex: 300,
-          }}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* ─── Beat 5: Eternal Ending (Monolith Image + Creepy Music Box Loop) ── */}
+      {/* ─── Beat 4: Eternal Ending (AM Monolith + Looping Vessel Track + Game Over Button) ── */}
       {beat === 'eternal_end' && (
         <div
           style={{
@@ -261,31 +252,107 @@ export const EndingVisual: React.FC<EndingVisualProps> = () => {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#000000',
-            animation: 'fadeIn 2.5s ease-in forwards',
+            animation: 'fadeIn 2s ease-in forwards',
             zIndex: 300,
           }}
-          role="img"
-          aria-label="The Monolith Entity - Eternal Ending"
+          role="region"
+          aria-label="Eternal Ending"
         >
+          {/* AM Monolith Entity */}
           <img
             src="/assets/am_monolith.png"
-            alt="The Monolith"
+            alt="The Monolith Entity"
             style={{
+              position: 'absolute',
+              inset: 0,
               width: '100vw',
               height: '100vh',
               objectFit: 'contain',
               filter: 'contrast(1.2) brightness(0.9)',
             }}
           />
-          {/* Vignette border */}
+
+          {/* Deep Vignette Shadow Overlay */}
           <div
             style={{
               position: 'absolute',
               inset: 0,
               pointerEvents: 'none',
-              background: 'radial-gradient(circle at 50% 50%, transparent 45%, rgba(0,0,0,0.8) 85%, #000000 100%)',
+              background: 'radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.85) 85%, #000000 100%)',
             }}
           />
+
+          {/* Subtle Ambient CRT Glitch lines */}
+          <div className="vhs-static-glitch-layer" aria-hidden="true" style={{ opacity: 0.25 }} />
+
+          {/* Diegetic Terminal Game Over Overlay */}
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 310,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              height: '100%',
+              paddingBottom: 'clamp(2.5rem, 8vh, 5.5rem)',
+              gap: '1.25rem',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 'clamp(0.75rem, 1.8vw, 0.95rem)',
+                letterSpacing: '0.25em',
+                color: 'var(--color-text-muted, #888888)',
+                textTransform: 'uppercase',
+                textShadow: '0 0 12px rgba(0,0,0,0.95)',
+                fontWeight: 600,
+              }}
+            >
+              [ SYSTEM SOVEREIGNTY ABSOLUTE // NO ESCAPE ]
+            </div>
+
+            <button
+              id="game-over-btn"
+              type="button"
+              onClick={handleGameOver}
+              className="game-over-button"
+              style={{
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: 'clamp(1.1rem, 2.5vw, 1.45rem)',
+                fontWeight: 900,
+                letterSpacing: '0.22em',
+                padding: '0.9rem 2.6rem',
+                color: '#ffffff',
+                backgroundColor: 'rgba(10, 0, 0, 0.85)',
+                border: '2px solid var(--color-blood-bright, #d90429)',
+                boxShadow:
+                  '0 0 25px rgba(217, 4, 41, 0.6), inset 0 0 15px rgba(217, 4, 41, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease-in-out',
+                textTransform: 'uppercase',
+                backdropFilter: 'blur(6px)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-blood-bright, #d90429)';
+                e.currentTarget.style.color = '#000000';
+                e.currentTarget.style.boxShadow =
+                  '0 0 45px rgba(217, 4, 41, 0.95), inset 0 0 20px rgba(255, 255, 255, 0.4)';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(10, 0, 0, 0.85)';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.boxShadow =
+                  '0 0 25px rgba(217, 4, 41, 0.6), inset 0 0 15px rgba(217, 4, 41, 0.3)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+              aria-label="Game Over - Return to Homepage"
+            >
+              ☠️ GAME OVER // REBOOT TERMINAL
+            </button>
+          </div>
         </div>
       )}
     </div>

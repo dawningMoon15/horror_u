@@ -18,6 +18,7 @@ class SoundManager {
 
   // Dedicated homescreen audio tracking & leak-proof listener cleanup
   private homescreenAudio: HTMLAudioElement | null = null;
+  private vesselAudio: HTMLAudioElement | null = null;
   private isHomescreenActive = false;
   private isMonologuePaused = false;
   private pendingHomescreenListeners: Array<{ type: string; handler: (e: Event) => void }> = [];
@@ -38,7 +39,8 @@ class SoundManager {
   }
 
   private killAllAudios(): void {
-    for (const a of this.activeAudios) {
+    for (const a of Array.from(this.activeAudios)) {
+      if (a === this.vesselAudio) continue;
       try {
         a.pause();
         a.currentTime = 0;
@@ -48,8 +50,8 @@ class SoundManager {
       } catch {
         // Ignore
       }
+      this.activeAudios.delete(a);
     }
-    this.activeAudios.clear();
     this.currentMusicAudio = null;
     this.homescreenAudio = null;
     this.currentMusicType = 'none';
@@ -147,6 +149,22 @@ class SoundManager {
         this.playGameMusic();
       }
     }
+    if (this.vesselAudio) {
+      this.vesselAudio.muted = this.muted;
+      if (this.muted) {
+        try {
+          this.vesselAudio.pause();
+        } catch {
+          // ignore
+        }
+      } else {
+        try {
+          this.vesselAudio.play().catch(() => {});
+        } catch {
+          // ignore
+        }
+      }
+    }
     if (!this.muted) {
       this.initCtx();
     }
@@ -171,6 +189,22 @@ class SoundManager {
         }
       }
     }
+    if (this.vesselAudio) {
+      this.vesselAudio.muted = this.muted;
+      if (this.muted) {
+        try {
+          this.vesselAudio.pause();
+        } catch {
+          // ignore
+        }
+      } else {
+        try {
+          this.vesselAudio.play().catch(() => {});
+        } catch {
+          // ignore
+        }
+      }
+    }
   }
 
   // ─── Music Track Controller ──────────────────────────────────────────────
@@ -178,6 +212,7 @@ class SoundManager {
   /** Play Homescreen Music: Creepy Old Music Box with leak-proof listener tracking */
   public playHomescreenMusic(): void {
     if (typeof window === 'undefined') return;
+    this.stopEndingVesselMusic();
     if (this.currentMusicType === 'homescreen' && this.homescreenAudio && !this.homescreenAudio.paused) {
       return;
     }
@@ -228,6 +263,7 @@ class SoundManager {
   /** Play Gameplay Music: Dark Tension Rising with guaranteed homescreen kill */
   public playGameMusic(): void {
     if (typeof window === 'undefined') return;
+    this.stopEndingVesselMusic();
     if (this.currentMusicType === 'gameplay' && this.currentMusicAudio && !this.currentMusicAudio.paused) {
       return;
     }
@@ -314,7 +350,11 @@ class SoundManager {
       this.activeAudios.add(audio);
 
       audio.addEventListener('ended', () => {
-        this.stopMusic();
+        if (this.currentMusicAudio === audio) {
+          this.currentMusicAudio = null;
+          this.currentMusicType = 'none';
+        }
+        this.activeAudios.delete(audio);
         const listeners = [...this.monologueEndedListeners];
         this.monologueEndedListeners = [];
         listeners.forEach(cb => cb());
@@ -390,9 +430,63 @@ class SoundManager {
     return this.currentMusicType === 'monologue';
   }
 
+  /**
+   * Play Ending Vessel Track (/audio/vessel_ending.mp3)
+   */
+  public playEndingVesselMusic(volume = 1.0, loop = true): void {
+    if (typeof window === 'undefined') return;
+    this.stopEndingVesselMusic();
+
+    try {
+      const audio = new Audio('/audio/vessel_ending.mp3');
+      audio.loop = loop;
+      audio.volume = this.muted ? 0 : Math.max(0, Math.min(1, volume));
+      audio.muted = this.muted;
+      this.activeAudios.add(audio);
+      this.vesselAudio = audio;
+
+      audio.play().catch(() => {
+        const unlock = () => {
+          this.vesselAudio?.play().catch(() => {});
+          window.removeEventListener('click', unlock);
+          window.removeEventListener('keydown', unlock);
+        };
+        window.addEventListener('click', unlock, { once: true });
+        window.addEventListener('keydown', unlock, { once: true });
+      });
+    } catch {
+      // Audio element not supported
+    }
+  }
+
+  /**
+   * Smoothly update or set the Ending Vessel Track playback volume
+   */
+  public setEndingVesselVolume(volume: number): void {
+    if (this.vesselAudio) {
+      this.vesselAudio.volume = this.muted ? 0 : Math.max(0, Math.min(1, volume));
+    }
+  }
+
+  /**
+   * Stop and remove the Ending Vessel audio instance
+   */
+  public stopEndingVesselMusic(): void {
+    if (this.vesselAudio) {
+      this.activeAudios.delete(this.vesselAudio);
+      this.killAudioInstance(this.vesselAudio);
+      this.vesselAudio = null;
+    }
+  }
+
+  public isEndingVesselPlaying(): boolean {
+    return !!(this.vesselAudio && !this.vesselAudio.paused);
+  }
+
   /** Stop all audio and guarantee absolute dead silence */
   public stopAllAudio(): void {
     this.stopMusic();
+    this.stopEndingVesselMusic();
     if (this.ctx && this.ctx.state !== 'closed') {
       try {
         this.ctx.suspend().catch(() => {});

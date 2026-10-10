@@ -8,6 +8,7 @@ import { Level4Visual } from '../components/visual/Level4Visual';
 import { Level5Visual } from '../components/visual/Level5Visual';
 import { EndingVisual } from '../components/visual/EndingVisual';
 import { INITIAL_STATE } from '../game/gameReducer';
+import { sound } from '../lib/soundEffects';
 
 describe('Level1Visual interactive room', () => {
   it('renders sequential hotspots and solves puzzle when rotary dial reaches 3', async () => {
@@ -160,6 +161,63 @@ describe('EndingVisual interactive room', () => {
     render(<EndingVisual state={endingState} onRestart={onRestart} />);
     expect(screen.getByText(/CORE ACCESS GRANTED/i)).toBeInTheDocument();
     expect(screen.getByText(/MEMORY SUBSYSTEM: SEVERED/i)).toBeInTheDocument();
+  });
+
+  it('plays vessel ending track at full volume for 5s then lowers to 75% when monologue resumes, and exposes game over reboot button', () => {
+    vi.useFakeTimers();
+    const onRestart = vi.fn();
+    const playVesselSpy = vi.spyOn(sound, 'playEndingVesselMusic');
+    const setVesselVolSpy = vi.spyOn(sound, 'setEndingVesselVolume');
+    const resumeMonoSpy = vi.spyOn(sound, 'resumeAmMonologue');
+    const playHomescreenSpy = vi.spyOn(sound, 'playHomescreenMusic');
+    const stopVesselSpy = vi.spyOn(sound, 'stopEndingVesselMusic');
+    const stopAllAudioSpy = vi.spyOn(sound, 'stopAllAudio');
+
+    const endingState = {
+      ...INITIAL_STATE,
+      appState: 'ENDING' as const,
+      endingId: 'INCORRUPTIBLE',
+      endingText: 'The machine took control.',
+    };
+
+    render(<EndingVisual state={endingState} onRestart={onRestart} />);
+
+    // Fast-forward to 4200ms: beat transitions to not_strong_enough and starts Vessel audio at 1.0 (full audio)
+    act(() => {
+      vi.advanceTimersByTime(4200);
+    });
+
+    expect(playVesselSpy).toHaveBeenCalledWith(1.0, true);
+    expect(resumeMonoSpy).not.toHaveBeenCalled();
+
+    // Fast-forward 5000ms more (to 9200ms): Vessel audio is set to 75% (0.75) and AM Monologue resumes
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(setVesselVolSpy).toHaveBeenCalledWith(0.75);
+    expect(resumeMonoSpy).toHaveBeenCalled();
+
+    // Simulate monologue ended via safety timeout or callback
+    act(() => {
+      vi.advanceTimersByTime(235000);
+    });
+
+    // Homepage music box must NOT be played at the end
+    expect(playHomescreenSpy).not.toHaveBeenCalled();
+
+    // Game Over button is visible in eternal_end
+    const gameOverBtn = screen.getByRole('button', { name: /Game Over - Return to Homepage/i });
+    expect(gameOverBtn).toBeInTheDocument();
+
+    // Player clicks Game Over button to break loop and reboot to homepage
+    fireEvent.click(gameOverBtn);
+
+    expect(stopVesselSpy).toHaveBeenCalled();
+    expect(stopAllAudioSpy).toHaveBeenCalled();
+    expect(onRestart).toHaveBeenCalled();
+
+    vi.useRealTimers();
   });
 });
 

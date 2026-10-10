@@ -881,5 +881,50 @@
   }
 }
 
+/* ─── Ending Visual Atmosphere Keyframes ─────────────────────────────────── */
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes vignetteIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.08);
+    filter: blur(8px) contrast(1.5) brightness(0.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px) contrast(1.15) brightness(0.95);
+  }
+}
+
+@keyframes glitchShake {
+  0% {
+    transform: translate(0, 0) skew(0deg);
+  }
+  20% {
+    transform: translate(-3px, 2px) skew(-1.5deg);
+  }
+  40% {
+    transform: translate(3px, -2px) skew(1.5deg);
+  }
+  60% {
+    transform: translate(-2px, -1px) skew(-0.5deg);
+  }
+  80% {
+    transform: translate(2px, 2px) skew(1deg);
+  }
+  100% {
+    transform: translate(0, 0) skew(0deg);
+  }
+}
+
 
 
