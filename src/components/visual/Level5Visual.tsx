@@ -192,6 +192,7 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({
     if (next.length === 3) {
       if (next.join(' ') === 'OBSERVE CONTAIN RELEASE') {
         sound.playSuccessChime();
+        sound.pauseAmMonologue();
         setIsFinalizing(true);
 
         // Subsystems shut down in sequence

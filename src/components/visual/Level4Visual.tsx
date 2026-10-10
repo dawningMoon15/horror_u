@@ -93,10 +93,8 @@ export const Level4Visual: React.FC<Level4VisualProps> = ({
   const handleSentienceSelect = (stateLetter: string) => {
     sound.playKeyClick();
     if (stateLetter === 'C') {
-      sound.stopMusic();
       setCutsceneBeat(1);
       setTimeout(() => {
-        sound.playAmMonologue();
         setCutsceneBeat(2);
       }, 1500);
 

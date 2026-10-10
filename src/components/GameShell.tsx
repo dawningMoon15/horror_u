@@ -48,19 +48,23 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // Audio track management: Room 5 switches to AM Monologue, earlier rooms play game tension music
+  // Audio track management: Rooms 1–4 play game tension music continuously; Room 5 switches to AM Monologue
   useEffect(() => {
     sound.stopHomescreenMusic();
     if (isEnding) return;
-    if (state.appState === 'LEVEL_5' || sound.isMonologuePlaying()) {
+    if (state.appState === 'LEVEL_5') {
       sound.playAmMonologue();
     } else {
       sound.playGameMusic();
     }
+  }, [isEnding, state.appState]);
+
+  // Clean up music only upon completely leaving the game screen / unmounting GameShell
+  useEffect(() => {
     return () => {
       sound.stopMusic();
     };
-  }, [isEnding, state.appState]);
+  }, []);
 
   // Responsive Top Toggle Handlers
   const toggleAudio = () => {

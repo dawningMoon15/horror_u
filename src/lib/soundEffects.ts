@@ -19,6 +19,7 @@ class SoundManager {
   // Dedicated homescreen audio tracking & leak-proof listener cleanup
   private homescreenAudio: HTMLAudioElement | null = null;
   private isHomescreenActive = false;
+  private isMonologuePaused = false;
   private pendingHomescreenListeners: Array<{ type: string; handler: (e: Event) => void }> = [];
   private pendingMusicListeners: Array<{ type: string; handler: (e: Event) => void }> = [];
 
@@ -52,6 +53,7 @@ class SoundManager {
     this.currentMusicAudio = null;
     this.homescreenAudio = null;
     this.currentMusicType = 'none';
+    this.isMonologuePaused = false;
   }
 
   private clearHomescreenUnlockListeners(): void {
@@ -129,7 +131,7 @@ class SoundManager {
         } catch {
           // ignore
         }
-      } else {
+      } else if (!this.isMonologuePaused) {
         try {
           this.currentMusicAudio.play().catch(() => {});
         } catch {
@@ -138,7 +140,7 @@ class SoundManager {
       }
     } else if (!this.muted) {
       if (this.currentMusicType === 'monologue') {
-        this.playAmMonologue();
+        if (!this.isMonologuePaused) this.playAmMonologue();
       } else if (this.currentMusicType === 'homescreen') {
         this.playHomescreenMusic();
       } else {
@@ -161,7 +163,7 @@ class SoundManager {
         } catch {
           // ignore
         }
-      } else {
+      } else if (!this.isMonologuePaused) {
         try {
           this.currentMusicAudio.play().catch(() => {});
         } catch {
@@ -293,6 +295,7 @@ class SoundManager {
    */
   public playAmMonologue(onEnded?: () => void, loop = false): void {
     if (typeof window === 'undefined') return;
+    this.isMonologuePaused = false;
     if (onEnded) {
       this.monologueEndedListeners.push(onEnded);
     }
@@ -331,6 +334,49 @@ class SoundManager {
     } catch {
       // Audio element not supported
     }
+  }
+
+  /**
+   * Pause AM Monologue without killing or rewinding the audio instance,
+   * keeping its currentTime intact right where it was cut off.
+   */
+  public pauseAmMonologue(): void {
+    if (this.currentMusicType === 'monologue' && this.currentMusicAudio) {
+      this.isMonologuePaused = true;
+      try {
+        this.currentMusicAudio.pause();
+      } catch {
+        // Ignore
+      }
+    }
+  }
+
+  /**
+   * Resume AM Monologue from the exact timestamp where it was paused.
+   */
+  public resumeAmMonologue(onEnded?: () => void): void {
+    if (typeof window === 'undefined') return;
+    this.isMonologuePaused = false;
+    if (onEnded) {
+      this.monologueEndedListeners.push(onEnded);
+    }
+    if (this.currentMusicType === 'monologue' && this.currentMusicAudio) {
+      if (this.currentMusicAudio.paused) {
+        this.currentMusicAudio.muted = this.muted;
+        this.currentMusicAudio.play().catch(() => {
+          const unlock = () => {
+            this.currentMusicAudio?.play().catch(() => {});
+            window.removeEventListener('click', unlock);
+            window.removeEventListener('keydown', unlock);
+          };
+          window.addEventListener('click', unlock, { once: true });
+          window.addEventListener('keydown', unlock, { once: true });
+        });
+      }
+      return;
+    }
+    // Fallback if audio was not yet instantiated
+    this.playAmMonologue(onEnded, false);
   }
 
   public onMonologueEnded(cb: () => void): () => void {

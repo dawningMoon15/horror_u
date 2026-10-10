@@ -16,26 +16,32 @@ export const EndingVisual: React.FC<EndingVisualProps> = () => {
   const declarationText = 'YOU ARE NOT STRONG ENOUGH.';
 
   useEffect(() => {
+    // Room 5 music is paused while displaying initial false victory screen
+    sound.pauseAmMonologue();
+
     // ─── Beat 1 -> Glitch Transition ─────────────────────────────────────────
     const tGlitch = setTimeout(() => {
       sound.playGlitch();
       setBeat('glitch');
     }, 2400);
 
-    // ─── Beat 2: Not Strong Enough Typewriter ───────────────────────────────
+    // ─── Beat 2: Not Strong Enough Display -> Resume Monologue from where it was cut off ───
     const tMessage = setTimeout(() => {
       sound.playGlitch();
       setTypedChars(0);
       setBeat('not_strong_enough');
+      // Resumes Room 5 music exactly from the timestamp where it was paused
+      sound.resumeAmMonologue(() => {
+        handleMonologueConcluded();
+      });
     }, 4200);
 
-    // ─── Beat 3: Monolith Vignettes in with AM Monologue ─────────────────────
+    // ─── Beat 3: Monolith Vignettes in while Monologue Continues ─────────────
     const tMonolith = setTimeout(() => {
       setBeat('monologue_monolith');
-      // AM monologue continues / plays to end without looping
-      sound.playAmMonologue(() => {
+      sound.resumeAmMonologue(() => {
         handleMonologueConcluded();
-      }, false);
+      });
     }, 9500);
 
     // Safety timeout in case audio is blocked or running in headless test
