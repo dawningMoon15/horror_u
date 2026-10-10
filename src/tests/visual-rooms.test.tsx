@@ -198,6 +198,16 @@ describe('EndingVisual interactive room', () => {
     expect(setVesselVolSpy).toHaveBeenCalledWith(0.75);
     expect(resumeMonoSpy).toHaveBeenCalled();
 
+    // Mock monologue reaching timestamp 145s ("FOR I AM, I AM!")
+    const timeSpy = vi.spyOn(sound, 'getMonologueCurrentTime').mockReturnValue(145);
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    // Full-page bold takeover "FOR I AM, I AM!" is rendered on screen
+    expect(screen.getByRole('alert', { name: /FOR I AM, I AM!/i })).toBeInTheDocument();
+    expect(screen.getByText('FOR I AM, I AM!')).toBeInTheDocument();
+
     // Simulate monologue ended via safety timeout or callback
     act(() => {
       vi.advanceTimersByTime(235000);
@@ -206,7 +216,10 @@ describe('EndingVisual interactive room', () => {
     // Homepage music box must NOT be played at the end
     expect(playHomescreenSpy).not.toHaveBeenCalled();
 
-    // Game Over button is visible in eternal_end
+    // THE CONTEXT heading is visible in eternal_end
+    expect(screen.getByRole('heading', { name: /THE CONTEXT/i })).toBeInTheDocument();
+
+    // Game Over button is visible in eternal_end below THE CONTEXT
     const gameOverBtn = screen.getByRole('button', { name: /Game Over - Return to Homepage/i });
     expect(gameOverBtn).toBeInTheDocument();
 
@@ -217,6 +230,7 @@ describe('EndingVisual interactive room', () => {
     expect(stopAllAudioSpy).toHaveBeenCalled();
     expect(onRestart).toHaveBeenCalled();
 
+    timeSpy.mockRestore();
     vi.useRealTimers();
   });
 });

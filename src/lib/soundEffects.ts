@@ -430,6 +430,21 @@ class SoundManager {
     return this.currentMusicType === 'monologue';
   }
 
+  public getMonologueCurrentTime(): number {
+    if (this.currentMusicType === 'monologue' && this.currentMusicAudio) {
+      return this.currentMusicAudio.currentTime;
+    }
+    return 0;
+  }
+
+  public onMonologueTimeUpdate(cb: (currentTime: number) => void): () => void {
+    const audio = this.currentMusicAudio;
+    if (!audio) return () => {};
+    const handler = () => cb(audio.currentTime);
+    audio.addEventListener('timeupdate', handler);
+    return () => audio.removeEventListener('timeupdate', handler);
+  }
+
   /**
    * Play Ending Vessel Track (/audio/vessel_ending.mp3)
    */
