@@ -543,21 +543,26 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({
       >
         {/* ─── First-Person WASD Navigation HUD Dock (Over Image) ────────── */}
         <div
+          className="level5-nav-dock"
           style={{
             position: 'absolute',
-            bottom: '1.25rem',
+            bottom: '1rem',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(6, 9, 14, 0.88)',
+            background: 'rgba(6, 9, 14, 0.92)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: 'var(--radius-md)',
-            padding: '0.45rem 1rem',
+            padding: '0.35rem 0.85rem',
             zIndex: 40,
             display: 'flex',
             alignItems: 'center',
-            gap: '0.85rem',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: '0.65rem',
+            maxWidth: 'min(94vw, 760px)',
+            width: 'max-content',
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.78rem',
+            fontSize: '0.76rem',
             color: '#ffffff',
             boxShadow: '0 8px 30px rgba(0, 0, 0, 0.8)',
             pointerEvents: 'auto',
@@ -667,7 +672,11 @@ export const Level5Visual: React.FC<Level5VisualProps> = ({
             left: '50%',
             transform: 'translateX(-50%)',
             display: 'flex',
-            gap: '0.85rem',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            maxWidth: '92vw',
+            width: 'max-content',
+            gap: '0.65rem',
             zIndex: 40,
           }}
         >

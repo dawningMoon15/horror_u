@@ -50,12 +50,16 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
 
   // Audio track management: Room 5 switches to AM Monologue, earlier rooms play game tension music
   useEffect(() => {
+    sound.stopHomescreenMusic();
     if (isEnding) return;
     if (state.appState === 'LEVEL_5' || sound.isMonologuePlaying()) {
       sound.playAmMonologue();
     } else {
       sound.playGameMusic();
     }
+    return () => {
+      sound.stopMusic();
+    };
   }, [isEnding, state.appState]);
 
   // Responsive Top Toggle Handlers
@@ -94,6 +98,7 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
 
   const handleRestart = () => {
     sound.playKeyClick();
+    sound.stopAllAudio();
     dispatch({ type: 'RESTART' });
   };
 
@@ -167,27 +172,30 @@ export const GameShell: React.FC<GameShellProps> = ({ state, dispatch }) => {
         {/* Left: Diegetic Room & Anomaly Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <div
-            className="hud-pill"
+            className="hud-pill hud-room-pill"
             style={{
               background: 'rgba(10, 15, 20, 0.88)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
               color: '#ffffff',
-              fontSize: '0.8rem',
+              fontSize: 'clamp(0.72rem, 1.1vw, 0.8rem)',
               fontWeight: 700,
               letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
             }}
           >
             <span style={{ color: 'var(--color-phosphor-green)' }}>●</span>
-            <span>ROOM {levelNumber} OF 5 // LEVEL {levelNumber} OF 5: {levelNames[levelNumber]}</span>
+            <span className="room-title-full">ROOM {levelNumber} OF 5 // LEVEL {levelNumber} OF 5: {levelNames[levelNumber]}</span>
+            <span className="room-title-compact">R{levelNumber}: {levelNames[levelNumber]}</span>
           </div>
 
           <div
-            className="hud-pill"
+            className="hud-pill hud-anomaly-pill"
             style={{
               background: 'rgba(0, 0, 0, 0.7)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               fontSize: '0.74rem',
               color: 'var(--color-text-secondary)',
+              whiteSpace: 'nowrap',
             }}
           >
             <span>ANOMALY: {anomalyData.theme.toUpperCase()}</span>

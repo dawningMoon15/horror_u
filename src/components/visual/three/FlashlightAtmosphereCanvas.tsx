@@ -51,7 +51,7 @@ export const FlashlightAtmosphereCanvas: React.FC<FlashlightAtmosphereCanvasProp
     camera.position.z = 10;
 
     // ─── 3D Flashlight Spotlight & Ambient Glow ─────────────────────────────
-    const spotLight = new THREE.SpotLight(0xfff5dd, 4.5, 25, Math.PI / 4, 0.65, 1.2);
+    const spotLight = new THREE.SpotLight(0xfff5dd, 4.5, 25, (Math.PI / 4) * 0.75, 0.65, 1.2);
     spotLight.position.set(0, 0, 8);
     const lightTarget = new THREE.Object3D();
     lightTarget.position.set(0, 0, 0);
@@ -62,28 +62,34 @@ export const FlashlightAtmosphereCanvas: React.FC<FlashlightAtmosphereCanvasProp
     const ambientLight = new THREE.AmbientLight(0x05080c, 0.4);
     scene.add(ambientLight);
 
-    // ─── Procedural Floating Dust Motes (180 Particles) ─────────────────────
+    // ─── Procedural Floating Dust Motes (Tyndall Effect in Spotlight Beam) ───
     const particleCount = 180;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
     const velocities = new Float32Array(particleCount * 3);
-    const scales = new Float32Array(particleCount);
+    const colors = new Float32Array(particleCount * 3);
 
     for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 16;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 6;
+      // Initialize particles distributed within the active spotlight region
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * 2.2;
+      positions[i * 3] = Math.cos(angle) * r;
+      positions[i * 3 + 1] = Math.sin(angle) * r;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 4;
 
       velocities[i * 3] = (Math.random() - 0.5) * 0.003;
-      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.003 + 0.001; // gentle upward drift
+      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.003 + 0.001; // gentle upward draft
       velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.002;
 
-      scales[i] = Math.random() * 0.12 + 0.04;
+      colors[i * 3] = 0;
+      colors[i * 3 + 1] = 0;
+      colors[i * 3 + 2] = 0;
     }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    // Circular particle texture
+    // Circular soft particle texture
     const canvas = document.createElement('canvas');
     canvas.width = 32;
     canvas.height = 32;
@@ -99,11 +105,12 @@ export const FlashlightAtmosphereCanvas: React.FC<FlashlightAtmosphereCanvasProp
     }
     const particleTexture = new THREE.CanvasTexture(canvas);
 
+    // Reduced size 2x (0.28 -> 0.14) with dynamic vertex colors for Tyndall scattering
     const material = new THREE.PointsMaterial({
-      size: 0.28,
+      size: 0.14,
       map: particleTexture,
       transparent: true,
-      opacity: 0.65,
+      vertexColors: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
@@ -135,22 +142,53 @@ export const FlashlightAtmosphereCanvas: React.FC<FlashlightAtmosphereCanvasProp
       const flicker = Math.sin(time * 28) * 0.05 + Math.cos(time * 47) * 0.03;
       spotLight.intensity = 4.5 + flicker;
 
-      // Drift dust particles
+      // ─── Tyndall Effect: particles only scatter light inside the spotlight beam
       const posAttr = geometry.attributes.position as THREE.BufferAttribute;
-      const array = posAttr.array as Float32Array;
+      const colAttr = geometry.attributes.color as THREE.BufferAttribute;
+      const posArray = posAttr.array as Float32Array;
+      const colArray = colAttr.array as Float32Array;
+
+      // Beam radius in world units corresponding to the 210px flashlight spotlight
+      const beamRadius = 2.15;
 
       for (let i = 0; i < particleCount; i++) {
-        array[i * 3] += velocities[i * 3];
-        array[i * 3 + 1] += velocities[i * 3 + 1];
-        array[i * 3 + 2] += velocities[i * 3 + 2];
+        posArray[i * 3] += velocities[i * 3];
+        posArray[i * 3 + 1] += velocities[i * 3 + 1];
+        posArray[i * 3 + 2] += velocities[i * 3 + 2];
 
-        // Boundary wrap
-        if (array[i * 3 + 1] > 5) array[i * 3 + 1] = -5;
-        if (array[i * 3 + 1] < -5) array[i * 3 + 1] = 5;
-        if (array[i * 3] > 8) array[i * 3] = -8;
-        if (array[i * 3] < -8) array[i * 3] = 8;
+        const dx = posArray[i * 3] - worldTargetX;
+        const dy = posArray[i * 3 + 1] - worldTargetY;
+        const dist = Math.hypot(dx, dy);
+
+        // If particle drifted too far from current spotlight, respawn it inside the beam
+        if (dist > beamRadius * 1.5) {
+          const spawnAngle = Math.random() * Math.PI * 2;
+          const spawnR = Math.random() * beamRadius * 0.95;
+          posArray[i * 3] = worldTargetX + Math.cos(spawnAngle) * spawnR;
+          posArray[i * 3 + 1] = worldTargetY + Math.sin(spawnAngle) * spawnR;
+          posArray[i * 3 + 2] = (Math.random() - 0.5) * 4;
+        }
+
+        const activeDist = Math.hypot(posArray[i * 3] - worldTargetX, posArray[i * 3 + 1] - worldTargetY);
+
+        // Outside spotlight cone: 0 light scattering (completely dark/invisible)
+        // Inside spotlight cone: authentic Tyndall optical scattering with smooth radial falloff
+        let scattering = 0;
+        if (activeDist < beamRadius) {
+          const falloff = 1 - activeDist / beamRadius;
+          scattering = falloff * falloff * (3 - 2 * falloff); // smoothstep
+        }
+
+        const shimmer = 0.85 + 0.15 * Math.sin(time * 7 + i * 2.1);
+        const illumination = scattering * shimmer * (1.0 + flicker * 0.2);
+
+        colArray[i * 3] = illumination * 1.0;       // Red
+        colArray[i * 3 + 1] = illumination * 0.95;  // Green (warm cream)
+        colArray[i * 3 + 2] = illumination * 0.82;  // Blue
       }
+
       posAttr.needsUpdate = true;
+      colAttr.needsUpdate = true;
 
       renderer.render(scene, camera);
     };

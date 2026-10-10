@@ -27,6 +27,7 @@ export const ConsentScreen: React.FC<ConsentScreenProps> = ({
 
   const handleGeneric = () => {
     sound.playKeyClick();
+    sound.stopAllAudio();
     onStartGeneric();
   };
 

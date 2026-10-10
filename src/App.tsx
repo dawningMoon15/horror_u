@@ -27,6 +27,8 @@ export default function App() {
     }
   }, [state]);
 
+  const [hasReloaded, setHasReloaded] = useState(false);
+
   // Audio toggles
   const handleToggleAudio = () => {
     const nextMuted = sound.toggleMute();
@@ -48,6 +50,7 @@ export default function App() {
   };
 
   const handleStartGeneric = () => {
+    sound.stopAllAudio();
     clearProgress();
     dispatch({ type: 'START_GENERIC' });
     dispatch({ type: 'SETUP_COMPLETE', config: GENERIC_GAME_CONFIG });
@@ -73,6 +76,7 @@ export default function App() {
   };
 
   const handleCapsuleSuccess = (config: GameConfig) => {
+    sound.stopAllAudio();
     clearProgress();
     setSampleCapsule('');
     dispatch({ type: 'SETUP_COMPLETE', config });
@@ -83,7 +87,9 @@ export default function App() {
   };
 
   const handleRestart = () => {
+    sound.stopAllAudio();
     clearProgress();
+    setHasReloaded(true);
     setSessionToken(generateSessionToken());
     setSampleCapsule('');
     dispatch({ type: 'RESTART' });
@@ -98,6 +104,7 @@ export default function App() {
           <LandingPage
             onStartConsent={handleStartConsent}
             onStartGeneric={handleStartGeneric}
+            isReload={hasReloaded}
           />
         );
 

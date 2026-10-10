@@ -76,6 +76,7 @@ export const CapsuleEntry: React.FC<CapsuleEntryProps> = ({
 
     // Success! Immediately purge the raw paste from ephemeral component state
     sound.playSuccessChime();
+    sound.stopAllAudio();
     setPasteValue('');
     setIsProcessing(false);
     onSuccess(mapResult.config);
@@ -83,6 +84,7 @@ export const CapsuleEntry: React.FC<CapsuleEntryProps> = ({
 
   const handleGeneric = () => {
     sound.playKeyClick();
+    sound.stopAllAudio();
     onStartGeneric();
   };
 

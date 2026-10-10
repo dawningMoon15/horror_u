@@ -6,6 +6,7 @@ import { LandingPage } from '../components/LandingPage';
 import { ConsentScreen } from '../components/ConsentScreen';
 import { PromptSetup } from '../components/PromptSetup';
 import { CapsuleEntry } from '../components/CapsuleEntry';
+import { sound } from '../lib/soundEffects';
 import { generatePrompt, generateSampleCapsule } from '../game/promptGenerator';
 
 // Mock clipboard API
@@ -361,3 +362,85 @@ describe('Full App Integration End-to-End Flow', () => {
     expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
   });
 });
+
+describe('Homepage audio lifecycle across game entry modes', () => {
+  it('stops homescreen music when starting generic mode directly from LandingPage', () => {
+    const stopHomescreenSpy = vi.spyOn(sound, 'stopHomescreenMusic');
+    render(<App />);
+
+    const genericBtn = screen.getByRole('button', { name: /PLAY WITHOUT PERSONALISATION/i });
+    fireEvent.click(genericBtn);
+
+    expect(stopHomescreenSpy).toHaveBeenCalled();
+    expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
+    stopHomescreenSpy.mockRestore();
+  });
+
+  it('stops homescreen music when starting generic mode from ConsentScreen', () => {
+    const stopHomescreenSpy = vi.spyOn(sound, 'stopHomescreenMusic');
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ENTER THE ARCHIVE/i }));
+    expect(screen.getByText(/MEMORY & DATA DISCLOSURE/i)).toBeInTheDocument();
+
+    const genericBtn = screen.getByRole('button', { name: /PLAY GENERIC/i });
+    fireEvent.click(genericBtn);
+
+    expect(stopHomescreenSpy).toHaveBeenCalled();
+    expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
+    stopHomescreenSpy.mockRestore();
+  });
+
+  it('stops homescreen music when starting generic mode from PromptSetup', () => {
+    const stopHomescreenSpy = vi.spyOn(sound, 'stopHomescreenMusic');
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ENTER THE ARCHIVE/i }));
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: /PROCEED TO EXTRACTION/i }));
+    expect(screen.getByText(/EXTRACTION PROMPT READY/i)).toBeInTheDocument();
+
+    const genericBtn = screen.getByRole('button', { name: /PLAY IN GENERIC MODE/i });
+    fireEvent.click(genericBtn);
+
+    expect(stopHomescreenSpy).toHaveBeenCalled();
+    expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
+    stopHomescreenSpy.mockRestore();
+  });
+
+  it('stops homescreen music when starting generic mode from CapsuleEntry', () => {
+    const stopHomescreenSpy = vi.spyOn(sound, 'stopHomescreenMusic');
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ENTER THE ARCHIVE/i }));
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: /PROCEED TO EXTRACTION/i }));
+    fireEvent.click(screen.getByRole('button', { name: /AUTO-FILL SAMPLE CAPSULE/i }));
+    expect(screen.getByText(/PASTE MEMORY CAPSULE/i)).toBeInTheDocument();
+
+    const genericBtn = screen.getByRole('button', { name: /SWITCH TO GENERIC MODE/i });
+    fireEvent.click(genericBtn);
+
+    expect(stopHomescreenSpy).toHaveBeenCalled();
+    expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
+    stopHomescreenSpy.mockRestore();
+  });
+
+  it('stops homescreen music upon successful capsule ingestion', () => {
+    const stopHomescreenSpy = vi.spyOn(sound, 'stopHomescreenMusic');
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ENTER THE ARCHIVE/i }));
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: /PROCEED TO EXTRACTION/i }));
+    fireEvent.click(screen.getByRole('button', { name: /AUTO-FILL SAMPLE CAPSULE/i }));
+
+    const submitBtn = screen.getByRole('button', { name: /INITIALIZE ARCHIVE/i });
+    fireEvent.click(submitBtn);
+
+    expect(stopHomescreenSpy).toHaveBeenCalled();
+    expect(screen.getByText(/LEVEL 1/i)).toBeInTheDocument();
+    stopHomescreenSpy.mockRestore();
+  });
+});
+

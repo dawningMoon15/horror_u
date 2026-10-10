@@ -13,6 +13,92 @@ class SoundManager {
   private currentMusicAudio: HTMLAudioElement | null = null;
   private currentMusicType: 'none' | 'homescreen' | 'gameplay' | 'ending' | 'monologue' = 'none';
 
+  // Master tracking set for ALL HTMLAudioElements to prevent any detached/orphaned leaks
+  private activeAudios = new Set<HTMLAudioElement>();
+
+  // Dedicated homescreen audio tracking & leak-proof listener cleanup
+  private homescreenAudio: HTMLAudioElement | null = null;
+  private isHomescreenActive = false;
+  private pendingHomescreenListeners: Array<{ type: string; handler: (e: Event) => void }> = [];
+  private pendingMusicListeners: Array<{ type: string; handler: (e: Event) => void }> = [];
+
+  private killAudioInstance(audio: HTMLAudioElement | null): void {
+    if (!audio) return;
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = '';
+      audio.removeAttribute('src');
+      audio.load();
+    } catch {
+      // Ignore
+    }
+    this.activeAudios.delete(audio);
+  }
+
+  private killAllAudios(): void {
+    for (const a of this.activeAudios) {
+      try {
+        a.pause();
+        a.currentTime = 0;
+        a.src = '';
+        a.removeAttribute('src');
+        a.load();
+      } catch {
+        // Ignore
+      }
+    }
+    this.activeAudios.clear();
+    this.currentMusicAudio = null;
+    this.homescreenAudio = null;
+    this.currentMusicType = 'none';
+  }
+
+  private clearHomescreenUnlockListeners(): void {
+    if (typeof window === 'undefined') return;
+    for (const item of this.pendingHomescreenListeners) {
+      window.removeEventListener(item.type, item.handler);
+    }
+    this.pendingHomescreenListeners = [];
+  }
+
+  private clearMusicUnlockListeners(): void {
+    if (typeof window === 'undefined') return;
+    for (const item of this.pendingMusicListeners) {
+      window.removeEventListener(item.type, item.handler);
+    }
+    this.pendingMusicListeners = [];
+  }
+
+  /**
+   * Stop Homescreen Music: Completely halts the creepy music box,
+   * unbinds all pending autoplay fallback listeners, and prevents resurrection.
+   */
+  public stopHomescreenMusic(): void {
+    this.isHomescreenActive = false;
+    this.clearHomescreenUnlockListeners();
+
+    if (this.homescreenAudio) {
+      this.killAudioInstance(this.homescreenAudio);
+      this.homescreenAudio = null;
+    }
+
+    if (this.currentMusicType === 'homescreen') {
+      if (this.currentMusicAudio) {
+        this.killAudioInstance(this.currentMusicAudio);
+        this.currentMusicAudio = null;
+      }
+      this.currentMusicType = 'none';
+    }
+
+    // Kill any remaining instances referencing creepy_music_box
+    for (const a of Array.from(this.activeAudios)) {
+      if (a.src?.includes('creepy_music_box') || a.currentSrc?.includes('creepy_music_box')) {
+        this.killAudioInstance(a);
+      }
+    }
+  }
+
   private initCtx(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.ctx) {
@@ -87,58 +173,92 @@ class SoundManager {
 
   // ─── Music Track Controller ──────────────────────────────────────────────
 
-  /** Play Homescreen Music: Creepy Old Music Box */
+  /** Play Homescreen Music: Creepy Old Music Box with leak-proof listener tracking */
   public playHomescreenMusic(): void {
     if (typeof window === 'undefined') return;
-    if (this.currentMusicType === 'homescreen' && this.currentMusicAudio && !this.currentMusicAudio.paused) {
+    if (this.currentMusicType === 'homescreen' && this.homescreenAudio && !this.homescreenAudio.paused) {
       return;
     }
-    this.stopMusic();
+    this.killAllAudios();
+    this.clearHomescreenUnlockListeners();
+    this.isHomescreenActive = true;
 
     try {
       const audio = new Audio('/audio/creepy_music_box.mp3');
       audio.loop = true;
       audio.volume = 0.6;
       audio.muted = this.muted;
-      audio.play().catch(() => {
-        // Autoplay may be blocked until first user interaction; attach unlock listener
-        const unlock = () => {
-          audio.play().catch(() => {});
-          window.removeEventListener('click', unlock);
-          window.removeEventListener('keydown', unlock);
-        };
-        window.addEventListener('click', unlock, { once: true });
-        window.addEventListener('keydown', unlock, { once: true });
-      });
+      this.activeAudios.add(audio);
+      this.homescreenAudio = audio;
       this.currentMusicAudio = audio;
       this.currentMusicType = 'homescreen';
+
+      audio.play().catch(() => {
+        // If homescreen music has been aborted/cancelled before playback started, do NOT bind unlock listeners!
+        if (!this.isHomescreenActive || this.currentMusicType !== 'homescreen' || this.homescreenAudio !== audio) {
+          return;
+        }
+
+        const unlock = (e: Event) => {
+          this.clearHomescreenUnlockListeners();
+          // If the user clicked a button/interactive element to leave the homepage, do NOT trigger homescreen music
+          const target = e.target as HTMLElement | null;
+          if (target?.closest?.('button, a, input, [role="button"]')) {
+            return;
+          }
+          if (!this.isHomescreenActive || this.currentMusicType !== 'homescreen' || this.homescreenAudio !== audio) {
+            return;
+          }
+          audio.play().catch(() => {});
+        };
+
+        const events = ['click', 'pointerdown', 'keydown', 'scroll'];
+        for (const ev of events) {
+          window.addEventListener(ev, unlock, { once: true });
+          this.pendingHomescreenListeners.push({ type: ev, handler: unlock });
+        }
+      });
     } catch {
       // Audio element not supported in current environment
     }
   }
 
-  /** Play Gameplay Music: Dark Tension Rising */
+  /** Play Gameplay Music: Dark Tension Rising with guaranteed homescreen kill */
   public playGameMusic(): void {
     if (typeof window === 'undefined') return;
     if (this.currentMusicType === 'gameplay' && this.currentMusicAudio && !this.currentMusicAudio.paused) {
       return;
     }
-    this.stopMusic();
+    this.stopHomescreenMusic();
+    this.killAllAudios();
+    this.clearMusicUnlockListeners();
 
     try {
       const audio = new Audio('/audio/dark_tension.mp3');
       audio.loop = true;
       audio.volume = 0.65;
       audio.muted = this.muted;
-      audio.play().catch(() => {
-        const unlock = () => {
-          audio.play().catch(() => {});
-          window.removeEventListener('click', unlock);
-        };
-        window.addEventListener('click', unlock, { once: true });
-      });
+      this.activeAudios.add(audio);
       this.currentMusicAudio = audio;
       this.currentMusicType = 'gameplay';
+
+      audio.play().catch(() => {
+        if (this.currentMusicType !== 'gameplay' || this.currentMusicAudio !== audio) {
+          return;
+        }
+        const unlock = () => {
+          this.clearMusicUnlockListeners();
+          if (this.currentMusicType !== 'gameplay' || this.currentMusicAudio !== audio) {
+            return;
+          }
+          audio.play().catch(() => {});
+        };
+        const events = ['click', 'keydown'];
+        for (const ev of events) {
+          window.addEventListener(ev, unlock, { once: true });
+          this.pendingMusicListeners.push({ type: ev, handler: unlock });
+        }
+      });
     } catch {
       // Audio element not supported
     }
@@ -150,13 +270,14 @@ class SoundManager {
     if (this.currentMusicType === 'ending' && this.currentMusicAudio && !this.currentMusicAudio.paused) {
       return;
     }
-    this.stopMusic();
+    this.killAllAudios();
 
     try {
       const audio = new Audio('/audio/creepy_music_box.mp3');
       audio.loop = true;
       audio.volume = 0.65;
       audio.muted = this.muted;
+      this.activeAudios.add(audio);
       audio.play().catch(() => {});
       this.currentMusicAudio = audio;
       this.currentMusicType = 'ending';
@@ -180,13 +301,14 @@ class SoundManager {
       this.currentMusicAudio.loop = loop;
       return;
     }
-    this.stopMusic();
+    this.killAllAudios();
 
     try {
       const audio = new Audio('/audio/am_monologue.mp3');
       audio.loop = loop;
-      audio.volume = 0.85;
+      audio.volume = 1.0;
       audio.muted = this.muted;
+      this.activeAudios.add(audio);
 
       audio.addEventListener('ended', () => {
         this.stopMusic();
@@ -236,15 +358,9 @@ class SoundManager {
 
   /** Stop any currently playing background music */
   public stopMusic(): void {
-    if (this.currentMusicAudio) {
-      try {
-        this.currentMusicAudio.pause();
-        this.currentMusicAudio.currentTime = 0;
-      } catch {
-        // Ignore
-      }
-      this.currentMusicAudio = null;
-    }
+    this.stopHomescreenMusic();
+    this.clearMusicUnlockListeners();
+    this.killAllAudios();
     this.currentMusicType = 'none';
   }
 

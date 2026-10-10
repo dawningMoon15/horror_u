@@ -42,6 +42,11 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="terminal-header" role="banner">
       <div className="brand-section">
+        <img
+          src="/logo.png"
+          alt="THE CONTEXT Logo"
+          className="brand-logo-img"
+        />
         <span className="brand-logo-text" id="app-title">THE CONTEXT</span>
         <span className="brand-version-badge" title="Schema Version 1.0">v1.0</span>
       </div>

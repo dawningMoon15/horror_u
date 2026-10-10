@@ -162,3 +162,21 @@ describe('EndingVisual interactive room', () => {
     expect(screen.getByText(/MEMORY SUBSYSTEM: SEVERED/i)).toBeInTheDocument();
   });
 });
+
+describe('Multi-screen Laptop Responsiveness', () => {
+  it('renders fullscreen responsive stage in CameraViewport for cross-laptop alignment', () => {
+    const { container } = render(
+      <Level1Visual onSolve={vi.fn()} unlocked={false} activeStep={1} />
+    );
+
+    // Responsive stage exists to span the viewport seamlessly
+    const stage = container.querySelector('.viewport-responsive-stage');
+    expect(stage).toBeInTheDocument();
+    expect(stage).toHaveStyle({ width: '100%' });
+
+    // Hotspot is rendered inside the stage
+    const hotspot = screen.getByRole('button', { name: /Green Phosphor Terminal Screen/i });
+    expect(stage).toContainElement(hotspot);
+  });
+});
+

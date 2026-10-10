@@ -46,6 +46,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   children,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
@@ -121,14 +122,15 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
+    const stage = stageRef.current || containerRef.current;
+    if (!stage) return;
+    const rect = stage.getBoundingClientRect();
     const xPercent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
     const yPercent = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
 
     setMousePos({ x: xPercent, y: yPercent });
-    containerRef.current.style.setProperty('--mouse-x', `${xPercent}%`);
-    containerRef.current.style.setProperty('--mouse-y', `${yPercent}%`);
+    stage.style.setProperty('--mouse-x', `${xPercent}%`);
+    stage.style.setProperty('--mouse-y', `${yPercent}%`);
 
     // Subtle 3D camera parallax tilt
     const tiltX = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
@@ -136,10 +138,10 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
     setTilt({ x: tiltX, y: tiltY });
   };
 
-  // Mask follows cursor position across pitch-black room (doubled spotlight radius: 280px)
+  // Mask follows cursor position across pitch-black room (0.75 scale spotlight radius: 210px)
   const spotlightMask = isZoomed
     ? 'none'
-    : `radial-gradient(circle 280px at ${mousePos.x}% ${mousePos.y}%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.95) 55%, rgba(0,0,0,0.2) 85%, rgba(0,0,0,0) 100%)`;
+    : `radial-gradient(circle 210px at ${mousePos.x}% ${mousePos.y}%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.95) 55%, rgba(0,0,0,0.2) 85%, rgba(0,0,0,0) 100%)`;
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -158,6 +160,7 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
         inset: 0,
         width: '100vw',
         height: '100vh',
+        maxHeight: '100vh',
         overflow: 'hidden',
         zIndex: 5,
       }}
@@ -177,12 +180,12 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
           pointerEvents: 'none',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', maxWidth: '70%' }}>
           <div className="vhs-rec-tag" style={{ pointerEvents: 'auto' }}>
             <span className="vhs-rec-dot">●</span> REC
           </div>
           {stepObjective && (
-            <div className="hud-pill" style={{ background: 'rgba(6, 9, 14, 0.92)', borderColor: 'rgba(255, 255, 255, 0.12)' }}>
+            <div className="hud-pill" style={{ background: 'rgba(6, 9, 14, 0.92)', borderColor: 'rgba(255, 255, 255, 0.12)', fontSize: 'clamp(0.68rem, 1.1vw, 0.78rem)' }}>
               <span style={{ color: 'var(--color-terminal-amber)', fontWeight: 600 }}>
                 {stepObjective}
               </span>
@@ -211,91 +214,108 @@ export const CameraViewport: React.FC<CameraViewportProps> = ({
         </div>
       </div>
 
-      {/* ─── 3D Camera Tilt Rig ────────────────────────────────────────── */}
+      {/* ─── Responsive Fullscreen Viewport Stage ─── */}
       <div
-        className="viewport-3d-rig"
+        ref={stageRef}
+        className="viewport-responsive-stage"
         style={{
-          transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          overflow: 'hidden',
+          backgroundColor: '#000000',
         }}
       >
-        {custom3DScene ? (
-          custom3DScene
-        ) : (
-          !hideDefaultBgImage && (
-            <img
-              src={imageSrc}
-              alt={imageAlt}
-              className={`viewport-bg-image ${isZoomed ? 'zoomed' : ''}`}
+        {/* ─── 3D Camera Tilt Rig ────────────────────────────────────────── */}
+        <div
+          className="viewport-3d-rig"
+          style={{
+            transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          {custom3DScene ? (
+            custom3DScene
+          ) : (
+            !hideDefaultBgImage && (
+              <img
+                src={imageSrc}
+                alt={imageAlt}
+                className={`viewport-bg-image ${isZoomed ? 'zoomed' : ''}`}
+                style={{
+                  maskImage: spotlightMask,
+                  WebkitMaskImage: spotlightMask,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                }}
+              />
+            )
+          )}
+
+          {/* Ambient Spotlight Cone Beam following cursor */}
+          {!isZoomed && !isGameOver && !isJumpscare && (
+            <div
+              className="viewport-spotlight-beam"
               style={{
-                maskImage: spotlightMask,
-                WebkitMaskImage: spotlightMask,
-                width: '100vw',
-                height: '100vh',
-                objectFit: 'cover',
+                position: 'absolute',
+                inset: 0,
+                pointerEvents: 'none',
+                background: `radial-gradient(circle 248px at ${mousePos.x}% ${mousePos.y}%, rgba(255, 255, 235, 0.16) 0%, rgba(255, 255, 240, 0.04) 60%, transparent 100%)`,
+                zIndex: 6,
               }}
+              aria-hidden="true"
             />
-          )
-        )}
+          )}
+        </div>
 
-        {/* Ambient Spotlight Cone Beam following cursor */}
-        {!isZoomed && !isGameOver && !isJumpscare && (
-          <div
-            className="viewport-spotlight-beam"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              pointerEvents: 'none',
-              background: `radial-gradient(circle 330px at ${mousePos.x}% ${mousePos.y}%, rgba(255, 255, 235, 0.16) 0%, rgba(255, 255, 240, 0.04) 60%, transparent 100%)`,
-              zIndex: 6,
-            }}
-            aria-hidden="true"
-          />
-        )}
+        {/* ─── Three.js Volumetric Flashlight & Floating Dust Particle Atmosphere ─── */}
+        <FlashlightAtmosphereCanvas
+          mouseXPercent={mousePos.x}
+          mouseYPercent={mousePos.y}
+          active={!isZoomed && !isGameOver && !isJumpscare}
+        />
+
+        {/* ─── WebGL Real-Time CRT Horror Post-Processing Shader ─────────── */}
+        <CrtHorrorShaderCanvas
+          intensity={isZoomed ? 0.35 : 0.65}
+          glitchActive={isJumpscare}
+        />
+
+        {/* Stealth Clue Hotspots (Positioned 1:1 on Stage Coordinates) */}
+        {!isZoomed &&
+          !isGameOver &&
+          !isJumpscare &&
+          hotspots.map((spot) => (
+            <button
+              key={spot.id}
+              type="button"
+              className="hotspot-stealth-area"
+              style={{
+                position: 'absolute',
+                left: `${spot.xPercent}%`,
+                top: `${spot.yPercent}%`,
+                transform: 'translate(-50%, -50%)',
+                width: 'clamp(130px, 15vw, 220px)',
+                height: 'clamp(130px, 15vw, 220px)',
+                background: 'transparent',
+                border: 'none',
+                borderRadius: '50%',
+                cursor: 'crosshair',
+                zIndex: 25,
+                outline: 'none',
+              }}
+              onClick={() => {
+                sound.playKeyClick();
+                spot.onActivate();
+              }}
+              aria-label={spot.label}
+            />
+          ))}
       </div>
-
-      {/* ─── Three.js Volumetric Flashlight & Floating Dust Particle Atmosphere ─── */}
-      <FlashlightAtmosphereCanvas
-        mouseXPercent={mousePos.x}
-        mouseYPercent={mousePos.y}
-        active={!isZoomed && !isGameOver && !isJumpscare}
-      />
-
-      {/* ─── WebGL Real-Time CRT Horror Post-Processing Shader ─────────── */}
-      <CrtHorrorShaderCanvas
-        intensity={isZoomed ? 0.35 : 0.65}
-        glitchActive={isJumpscare}
-      />
-
-      {/* Stealth Clue Hotspots (Discovered by moving cursor spotlight over them) */}
-      {!isZoomed &&
-        !isGameOver &&
-        !isJumpscare &&
-        hotspots.map((spot) => (
-          <button
-            key={spot.id}
-            type="button"
-            className="hotspot-stealth-area"
-            style={{
-              position: 'absolute',
-              left: `${spot.xPercent}%`,
-              top: `${spot.yPercent}%`,
-              transform: 'translate(-50%, -50%)',
-              width: '220px',
-              height: '220px',
-              background: 'transparent',
-              border: 'none',
-              borderRadius: '50%',
-              cursor: 'crosshair',
-              zIndex: 25,
-              outline: 'none',
-            }}
-            onClick={() => {
-              sound.playKeyClick();
-              spot.onActivate();
-            }}
-            aria-label={spot.label}
-          />
-        ))}
 
       {/* ─── Jumpscare Video Overlay ───────────────────────────────────── */}
       {isJumpscare && (

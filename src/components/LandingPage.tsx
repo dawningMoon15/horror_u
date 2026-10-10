@@ -4,99 +4,315 @@ import { sound } from '../lib/soundEffects';
 interface LandingPageProps {
   onStartConsent: () => void;
   onStartGeneric: () => void;
+  isReload?: boolean;
 }
 
-// ─── Scroll-Triggered Progressive Typewriter Component ───────────────────────
-const ScrollTypewriter: React.FC<{
+// ─── Punctuation Delay Calculator ───────────────────────────────────────────
+const getCharDelay = (
+  char: string,
+  nextChar: string | undefined,
+  baseSpeed: number,
+  isReload?: boolean
+): number => {
+  const fullStopPause = isReload ? 70 : 180;
+  const commaPause = isReload ? 35 : 90;
+
+  // Pause on full stops, exclamation marks, question marks, colons
+  if (char === '.' || char === '!' || char === '?' || char === ':') {
+    if (nextChar && /[a-zA-Z0-9]/.test(nextChar)) {
+      return baseSpeed + 35;
+    }
+    return baseSpeed + fullStopPause;
+  }
+
+  // Medium pause on commas, semicolons, em-dashes, en-dashes
+  if (char === ',' || char === ';' || char === '—' || char === '–') {
+    return baseSpeed + commaPause;
+  }
+
+  return baseSpeed;
+};
+
+// ─── Core Progressive Typewriter Component with Deliberate Cadence ───────────
+interface TypewriterTextProps {
   text: string;
   speed?: number;
   className?: string;
   style?: React.CSSProperties;
   as?: 'h1' | 'h2' | 'h3' | 'p' | 'div' | 'span';
-}> = ({ text, speed = 20, className, style, as: Component = 'span' }) => {
-  const [displayedText, setDisplayedText] = useState(() =>
-    typeof IntersectionObserver === 'undefined' ? text : ''
-  );
-  const [hasStarted, setHasStarted] = useState(() =>
-    typeof IntersectionObserver === 'undefined'
-  );
-  const elementRef = useRef<HTMLElement>(null);
+  active?: boolean;
+  onComplete?: () => void;
+  cursorColor?: string;
+  startDelay?: number;
+  forceComplete?: boolean;
+  isReload?: boolean;
+}
+
+const TypewriterText: React.FC<TypewriterTextProps> = ({
+  text,
+  speed = 16,
+  className,
+  style,
+  as: Component = 'span',
+  active = true,
+  onComplete,
+  cursorColor = 'var(--color-blood-bright)',
+  startDelay = 0,
+  forceComplete = false,
+  isReload = false,
+}) => {
+  const isTestOrReduced =
+    typeof IntersectionObserver === 'undefined' ||
+    (typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+
+  const [displayedText, setDisplayedText] = useState(() => (isTestOrReduced ? text : ''));
+  const [isFinished, setIsFinished] = useState(() => Boolean(isTestOrReduced));
+  const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return;
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasStarted(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
+  // If forceComplete is triggered (e.g. click anywhere or test), trigger onComplete callback
+  useEffect(() => {
+    if (forceComplete) {
+      onCompleteRef.current?.();
+    }
+  }, [forceComplete]);
 
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
+  useEffect(() => {
+    if (isTestOrReduced || forceComplete) {
+      onCompleteRef.current?.();
+      return;
     }
 
-    return () => observer.disconnect();
-  }, [text]);
+    if (!active) {
+      return;
+    }
 
-  useEffect(() => {
-    if (!hasStarted) return;
-    let idx = 0;
-    const interval = setInterval(() => {
-      idx += 1;
-      setDisplayedText(text.slice(0, idx));
-      if (idx >= text.length) {
-        clearInterval(interval);
-      }
-    }, speed);
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+    let currentIndex = 0;
 
-    return () => clearInterval(interval);
-  }, [hasStarted, text, speed]);
+    const effectiveSpeed = isReload ? Math.max(5, Math.floor(speed * 0.4)) : speed;
+
+    const startTyping = () => {
+      if (cancelled) return;
+
+      const typeNextChar = () => {
+        if (cancelled) return;
+
+        if (currentIndex >= text.length) {
+          setIsFinished(true);
+          onCompleteRef.current?.();
+          return;
+        }
+
+        const char = text[currentIndex];
+        const nextChar = text[currentIndex + 1];
+        currentIndex += 1;
+        setDisplayedText(text.slice(0, currentIndex));
+
+        if (currentIndex < text.length) {
+          const delay = getCharDelay(char, nextChar, effectiveSpeed, isReload);
+          timeoutId = setTimeout(typeNextChar, delay);
+        } else {
+          setIsFinished(true);
+          onCompleteRef.current?.();
+        }
+      };
+
+      typeNextChar();
+    };
+
+    if (startDelay > 0 && !isReload) {
+      timeoutId = setTimeout(startTyping, startDelay);
+    } else {
+      startTyping();
+    }
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [active, text, speed, startDelay, isTestOrReduced, forceComplete, isReload]);
 
   const Tag = Component as unknown as React.ElementType;
+  const renderedText = forceComplete || isTestOrReduced ? text : displayedText;
+  const isDone = forceComplete || isTestOrReduced || isFinished;
 
   return (
-    <Tag ref={elementRef} className={className} style={style}>
-      {hasStarted ? displayedText : ''}
-      {hasStarted && displayedText.length < text.length && (
-        <span style={{ animation: 'blink 0.7s infinite', color: 'var(--color-blood-bright)' }}>_</span>
+    <Tag className={className} style={style}>
+      {renderedText}
+      {active && !isDone && (
+        <span
+          style={{
+            animation: 'blink 0.7s infinite',
+            color: cursorColor,
+            fontWeight: 700,
+            marginLeft: '2px',
+          }}
+          aria-hidden="true"
+        >
+          _
+        </span>
       )}
     </Tag>
   );
 };
 
+// ─── Scroll-Triggered Progressive Typewriter Wrapper ────────────────────────
+const ScrollTypewriter: React.FC<
+  TypewriterTextProps & {
+    threshold?: number;
+  }
+> = ({ threshold = 0.1, active = true, onComplete, ...props }) => {
+  const isTestOrReduced =
+    typeof IntersectionObserver === 'undefined' ||
+    (typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+
+  const [inView, setInView] = useState(() => Boolean(isTestOrReduced));
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isTestOrReduced || inView) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [threshold, isTestOrReduced, inView]);
+
+  return (
+    <div ref={containerRef} style={{ width: '100%' }}>
+      <TypewriterText
+        {...props}
+        active={active && inView}
+        onComplete={onComplete}
+      />
+    </div>
+  );
+};
+
+const MANIFEST_LINES = [
+  '> SYSTEM RESTORED. You wake up seated in front of an illuminated monochromatic monitor.',
+  '> The directory trees, audio frequencies, and log files seem faintly familiar—as if woven from fragments of thoughts you explored only moments ago.',
+  '> To unlock the exit before the session loops, you must examine the records and solve three linked logical puzzles.',
+];
+
+const FEATURE_STEPS = [
+  {
+    step: 'STEP 01',
+    title: 'Copy Prompt',
+    desc: 'Copy the structured prompt into ChatGPT, Claude, Gemini, or your preferred AI. The prompt restricts output to strict allowlists (e.g. astronomy, retro-computing, mythology).',
+  },
+  {
+    step: 'STEP 02',
+    title: 'Memory Capsule',
+    desc: 'Your assistant encodes harmless interest categories into a compact base64 payload. No passwords, personal names, locations, or direct quotes are ever permitted.',
+  },
+  {
+    step: 'STEP 03',
+    title: 'Escape The Room',
+    desc: "Paste the capsule to awaken the room's skin, audio tone, and clue variants. Every puzzle remains 100% deterministic, verifiable, and solvable.",
+  },
+];
+
 export const LandingPage: React.FC<LandingPageProps> = ({
   onStartConsent,
   onStartGeneric,
+  isReload = false,
 }) => {
   const [showDataPolicy, setShowDataPolicy] = useState(false);
+  const [forceCompleteAll, setForceCompleteAll] = useState(false);
+  const [heroTitleDone, setHeroTitleDone] = useState(() =>
+    typeof IntersectionObserver === 'undefined'
+  );
 
-  // Play Creepy Old Music Box on homescreen: load immediately + gesture fallback
+  // Sequential typing state for Narrative Terminal
+  const [terminalInView, setTerminalInView] = useState(() =>
+    typeof IntersectionObserver === 'undefined'
+  );
+  const [activeManifestLine, setActiveManifestLine] = useState(() =>
+    typeof IntersectionObserver === 'undefined' ? 3 : 0
+  );
+  const terminalRef = useRef<HTMLElement>(null);
+
+  // Sequential line-by-line typing state for Feature Tabs (Steps 01 -> 02 -> 03)
+  const [featureInView, setFeatureInView] = useState(() =>
+    typeof IntersectionObserver === 'undefined'
+  );
+  const [activeStepIndex, setActiveStepIndex] = useState(() =>
+    typeof IntersectionObserver === 'undefined' ? 3 : 0
+  );
+  const featureGridRef = useRef<HTMLDivElement>(null);
+
+  // Play Creepy Old Music Box on homescreen; cleanly halt when unmounting
   useEffect(() => {
     sound.playHomescreenMusic();
-
-    const handleFirstGesture = () => {
-      sound.playHomescreenMusic();
-    };
-
-    window.addEventListener('click', handleFirstGesture, { once: true });
-    window.addEventListener('pointerdown', handleFirstGesture, { once: true });
-    window.addEventListener('keydown', handleFirstGesture, { once: true });
-    window.addEventListener('scroll', handleFirstGesture, { once: true });
-
     return () => {
-      window.removeEventListener('click', handleFirstGesture);
-      window.removeEventListener('pointerdown', handleFirstGesture);
-      window.removeEventListener('keydown', handleFirstGesture);
-      window.removeEventListener('scroll', handleFirstGesture);
+      sound.stopHomescreenMusic();
     };
   }, []);
 
+  // Trigger terminal manifest lines sequentially when in viewport
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined' || terminalInView) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTerminalInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (terminalRef.current) {
+      observer.observe(terminalRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [terminalInView]);
+
+  // Trigger feature cards sequentially when in viewport
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined' || featureInView) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setFeatureInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (featureGridRef.current) {
+      observer.observe(featureGridRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [featureInView]);
+
   const handlePersonalised = () => {
     sound.playKeyClick();
+    sound.stopHomescreenMusic();
     // Kiosk fullscreen mode like HirePro / exam proctoring
     document.documentElement.requestFullscreen?.().catch(() => {});
     onStartConsent();
@@ -104,6 +320,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const handleGeneric = () => {
     sound.playKeyClick();
+    sound.stopAllAudio();
     // Kiosk fullscreen mode
     document.documentElement.requestFullscreen?.().catch(() => {});
     onStartGeneric();
@@ -128,29 +345,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </video>
       </div>
 
-      <main className="landing-screen" role="main" style={{ position: 'relative', zIndex: 3 }}>
+      <main
+        className="landing-screen"
+        role="main"
+        style={{ position: 'relative', zIndex: 3 }}
+        onClick={() => setForceCompleteAll(true)}
+      >
         {/* Subtle Status Badge */}
         <div className="badge-tag green anim-rise anim-delay-1">
           <span style={{ color: 'var(--color-phosphor-green)' }} aria-hidden="true">●</span> EXPERIMENTAL RETRO-COMPUTING MYSTERY
         </div>
 
-        {/* Cinematic Title & Subtitle with Scroll-Triggered Typewriter Format */}
-        <ScrollTypewriter
+        {/* Cinematic Title & Subtitle with Sequential Typewriter Cadence */}
+        <TypewriterText
           as="h1"
           text="THE CONTEXT"
-          speed={45}
+          speed={18}
           className="screen-title anim-rise anim-delay-2"
+          active={true}
+          forceComplete={forceCompleteAll}
+          isReload={isReload}
+          onComplete={() => setHeroTitleDone(true)}
         />
 
-        <ScrollTypewriter
+        <TypewriterText
           as="p"
           text="A short browser-based psychological horror escape room personalised by your chosen AI assistant. Explore an antiquated terminal where your harmless digital curiosities reappear inside an eerie fictional anomaly."
-          speed={15}
+          speed={12}
           className="screen-subtitle anim-rise anim-delay-3"
+          active={heroTitleDone}
+          forceComplete={forceCompleteAll}
+          isReload={isReload}
+          startDelay={80}
         />
 
         {/* Narrative Terminal Window */}
         <section
+          ref={terminalRef}
           className="terminal-panel anim-rise anim-delay-4"
           aria-label="Terminal Log Entry"
         >
@@ -165,70 +396,100 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               OFFLINE MODE
             </span>
           </div>
-          <div className="panel-body">
-            <ScrollTypewriter
-              as="p"
-              text="> SYSTEM RESTORED. You wake up seated in front of an illuminated monochromatic monitor. > The directory trees, audio frequencies, and log files seem faintly familiar—as if woven from fragments of thoughts you explored only moments ago. > To unlock the exit before the session loops, you must examine the records and solve three linked logical puzzles."
-              speed={12}
-              style={{ margin: 0, lineHeight: 1.6, color: 'var(--color-text-primary)', fontFamily: 'var(--font-mono)' }}
-            />
+          <div
+            className="panel-body"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.65rem',
+              minHeight: '7rem',
+            }}
+          >
+            {MANIFEST_LINES.map((line, idx) => (
+              <div key={idx} style={{ minHeight: '1.4rem' }}>
+                <TypewriterText
+                  as="p"
+                  text={line}
+                  speed={14}
+                  active={terminalInView && activeManifestLine >= idx}
+                  forceComplete={forceCompleteAll}
+                  isReload={isReload}
+                  cursorColor="var(--color-phosphor-green)"
+                  onComplete={() => {
+                    if (activeManifestLine === idx && idx < MANIFEST_LINES.length - 1) {
+                      setTimeout(() => {
+                        setActiveManifestLine((curr) => Math.max(curr, idx + 1));
+                      }, isReload ? 100 : 220);
+                    }
+                  }}
+                  style={{
+                    margin: 0,
+                    lineHeight: 1.6,
+                    color: idx === 0 ? 'var(--color-phosphor-green)' : 'var(--color-text-primary)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.88rem',
+                  }}
+                />
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* Feature Grid: How It Works */}
+        {/* List-Based Steps Section Header */}
         <ScrollTypewriter
           as="h2"
           text="HOW PERSONALISATION WORKS"
-          speed={30}
+          speed={18}
           className="anim-rise anim-delay-5"
+          forceComplete={forceCompleteAll}
+          isReload={isReload}
           style={{
-            fontSize: '1.25rem',
+            fontSize: '1.15rem',
             color: 'var(--color-text-primary)',
-            margin: '2rem 0 1rem 0',
+            margin: '2rem 0 0.85rem 0',
             letterSpacing: '0.05em',
             fontFamily: 'var(--font-display)',
           }}
         />
 
-        <div className="feature-grid anim-rise anim-delay-5">
-          <div className="feature-card">
-            <div className="feature-card-header">
-              <span className="feature-card-number">STEP 01</span>
-              <h3 className="feature-card-title">Copy Prompt</h3>
-            </div>
-            <ScrollTypewriter
-              as="p"
-              text="Copy the structured prompt into ChatGPT, Claude, Gemini, or your preferred AI. The prompt restricts output to strict allowlists (e.g. astronomy, retro-computing, mythology)."
-              speed={14}
-              className="feature-card-desc"
-            />
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-card-header">
-              <span className="feature-card-number">STEP 02</span>
-              <h3 className="feature-card-title">Memory Capsule</h3>
-            </div>
-            <ScrollTypewriter
-              as="p"
-              text="Your assistant encodes harmless interest categories into a compact base64 payload. No passwords, personal names, locations, or direct quotes are ever permitted."
-              speed={14}
-              className="feature-card-desc"
-            />
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-card-header">
-              <span className="feature-card-number">STEP 03</span>
-              <h3 className="feature-card-title">Escape The Room</h3>
-            </div>
-            <ScrollTypewriter
-              as="p"
-              text="Paste the capsule to awaken the room's skin, audio tone, and clue variants. Every puzzle remains 100% deterministic, verifiable, and solvable."
-              speed={14}
-              className="feature-card-desc"
-            />
-          </div>
+        {/* Full-Width Whole-Line List-Based Steps Progression */}
+        <div ref={featureGridRef} className="steps-list anim-rise anim-delay-5" role="list">
+          {FEATURE_STEPS.map((stepItem, idx) => {
+            const isCurrentTyping = featureInView && activeStepIndex === idx;
+            return (
+              <div
+                key={stepItem.step}
+                className={`step-list-item ${isCurrentTyping ? 'is-active-typing' : ''}`}
+                role="listitem"
+              >
+                <div className="step-list-lead">
+                  <span className="feature-card-number">{stepItem.step}</span>
+                  <span className="step-list-title">{stepItem.title}</span>
+                  <span className="step-list-sep" aria-hidden="true">—</span>
+                </div>
+                <div className="step-list-desc">
+                  <TypewriterText
+                    as="span"
+                    text={stepItem.desc}
+                    speed={15}
+                    active={featureInView && activeStepIndex >= idx}
+                    forceComplete={forceCompleteAll}
+                    isReload={isReload}
+                    cursorColor="var(--color-cyber-cyan)"
+                    onComplete={() => {
+                      if (activeStepIndex === idx && idx < FEATURE_STEPS.length - 1) {
+                        setTimeout(() => {
+                          setActiveStepIndex((curr) => Math.max(curr, idx + 1));
+                        }, isReload ? 100 : 200);
+                      } else if (activeStepIndex === idx) {
+                        setActiveStepIndex(FEATURE_STEPS.length);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Primary Action Buttons with Blood-Red Emergency Glow */}

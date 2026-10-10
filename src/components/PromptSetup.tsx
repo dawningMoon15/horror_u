@@ -44,6 +44,7 @@ export const PromptSetup: React.FC<PromptSetupProps> = ({
 
   const handleUseSample = () => {
     sound.playKeyClick();
+    sound.stopHomescreenMusic();
     const sample = generateSampleCapsule(sessionToken, 'astronomy');
     onProceedToPaste(sample);
   };
@@ -55,6 +56,7 @@ export const PromptSetup: React.FC<PromptSetupProps> = ({
 
   const handleGeneric = () => {
     sound.playKeyClick();
+    sound.stopAllAudio();
     onStartGeneric();
   };
 
